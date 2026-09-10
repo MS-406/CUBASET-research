@@ -1,0 +1,8 @@
+Model / Method,PA-F1,Affiliation-F1,Worst-Case Mission F1,Footprint,Type
+v1 (Baseline ConvAE + 99th Pct),0.8241,0.612,0.385,28.2 KB,Baseline
+v1 + POT Thresholding (EVT),0.8512,0.684,0.442,28.2 KB,EVT Threshold
+v2 USAD Teacher (Dual-AE),0.887,0.741,0.521,118 KB,Adversarial
+v2 USAD + CORAL Domain Adaptation,0.9125,0.793,0.648,118 KB,Domain Adapted
+v2 Anomaly Transformer (Assoc. Discrepancy),0.924,0.811,0.682,64 KB,Attention Discrepancy
+v2 PatchTST Multi-Scale Backbone,0.931,0.825,0.704,82 KB,Patch Transformer
+v2 Distilled Edge Student (Proposed),0.9015,0.781,0.635,1.64 KB,On-Orbit Deployment

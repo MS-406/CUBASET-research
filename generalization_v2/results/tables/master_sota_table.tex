@@ -1,0 +1,13 @@
+\begin{tabular}{lrrrll}
+\toprule
+Model / Method & PA-F1 & Affiliation-F1 & Worst-Case Mission F1 & Footprint & Type \\
+\midrule
+v1 (Baseline ConvAE + 99th Pct) & 0.824100 & 0.612000 & 0.385000 & 28.2 KB & Baseline \\
+v1 + POT Thresholding (EVT) & 0.851200 & 0.684000 & 0.442000 & 28.2 KB & EVT Threshold \\
+v2 USAD Teacher (Dual-AE) & 0.887000 & 0.741000 & 0.521000 & 118 KB & Adversarial \\
+v2 USAD + CORAL Domain Adaptation & 0.912500 & 0.793000 & 0.648000 & 118 KB & Domain Adapted \\
+v2 Anomaly Transformer (Assoc. Discrepancy) & 0.924000 & 0.811000 & 0.682000 & 64 KB & Attention Discrepancy \\
+v2 PatchTST Multi-Scale Backbone & 0.931000 & 0.825000 & 0.704000 & 82 KB & Patch Transformer \\
+v2 Distilled Edge Student (Proposed) & 0.901500 & 0.781000 & 0.635000 & 1.64 KB & On-Orbit Deployment \\
+\bottomrule
+\end{tabular}

@@ -1,0 +1,11 @@
+\begin{tabular}{lrrrl}
+\toprule
+Pipeline & PA-F1 & Affiliation-F1 & Worst-Case Mission F1 & Method \\
+\midrule
+v1 (Baseline ConvAE + 99th Pct) & 0.824100 & 0.612000 & 0.385000 & Static Threshold \\
+v1 + POT Thresholding (EVT) & 0.851200 & 0.684000 & 0.442000 & Extreme Value Theory \\
+v2 (USAD Teacher + POT) & 0.887000 & 0.741000 & 0.521000 & Dual-AE Adversarial \\
+v2 + CORAL Domain Adaptation & 0.912500 & 0.793000 & 0.648000 & Covariance Alignment \\
+v2 Distilled Student (1.64 KB) & 0.898000 & 0.772000 & 0.621000 & Edge Deployment \\
+\bottomrule
+\end{tabular}

@@ -1,0 +1,6 @@
+Pipeline,PA-F1,Affiliation-F1,Worst-Case Mission F1,Method
+v1 (Baseline ConvAE + 99th Pct),0.8241,0.612,0.385,Static Threshold
+v1 + POT Thresholding (EVT),0.8512,0.684,0.442,Extreme Value Theory
+v2 (USAD Teacher + POT),0.887,0.741,0.521,Dual-AE Adversarial
+v2 + CORAL Domain Adaptation,0.9125,0.793,0.648,Covariance Alignment
+v2 Distilled Student (1.64 KB),0.898,0.772,0.621,Edge Deployment
