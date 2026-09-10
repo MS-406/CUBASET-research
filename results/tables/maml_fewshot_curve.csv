@@ -1,0 +1,5 @@
+model,precision_raw,recall_raw,f1_raw,precision_pa,recall_pa,f1_point_adjust,k_shot
+MAML (3-shot),0.8431,0.2346,0.3671,0.9477,0.792,0.8629,3
+MAML (5-shot),0.8072,0.2324,0.3609,0.9345,0.792,0.8574,5
+MAML (10-shot),0.773,0.2243,0.3477,0.9232,0.792,0.8526,10
+MAML (20-shot),0.8143,0.2272,0.3553,0.9386,0.792,0.8591,20

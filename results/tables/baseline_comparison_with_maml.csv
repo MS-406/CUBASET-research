@@ -1,0 +1,6 @@
+model,precision,recall,f1,auc_pr,n_channels_thresholded,train_time_s,model_size_kb
+LSTM Forecaster,0.3707,0.5847,0.4537,0.2668,81,0.0,197.25
+Conv-AE (1D),0.4143,0.6223,0.4974,0.2856,81,0.0,5.79
+Transformer,0.3994,0.5763,0.4718,0.2832,81,0.1,67.13
+ELM (efficient baseline),0.4224,0.6322,0.5064,0.2938,81,0.952,235.55
+MAML (5-shot),0.5162,0.6832,0.5881,0.4873,16,0.0,5.79

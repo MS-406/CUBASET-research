@@ -1,0 +1,5 @@
+model,precision_raw,recall_raw,f1_raw,precision_pa,recall_pa,f1_point_adjust,k_shot,eval_time_s,model_size_kb
+Pretrained+FewShot (3-shot),0.5032,0.0579,0.1038,0.933,0.7956,0.8588,3,2.2,5.79
+Pretrained+FewShot (5-shot),0.48,0.0527,0.095,0.9307,0.767,0.841,5,2.0,5.79
+Pretrained+FewShot (10-shot),0.4765,0.052,0.0938,0.9307,0.767,0.841,10,1.7,5.79
+Pretrained+FewShot (20-shot),0.5533,0.0608,0.1096,0.9419,0.7956,0.8626,20,1.8,5.79

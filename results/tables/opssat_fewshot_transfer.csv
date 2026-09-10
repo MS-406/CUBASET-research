@@ -1,0 +1,9 @@
+model,precision_raw,recall_raw,f1_raw,precision_pa,recall_pa,f1_point_adjust,k_shot,method
+Teacher (3-shot),0.6667,0.0531,0.0984,0.7857,0.0973,0.1732,3,Teacher
+Distilled Student (3-shot),0.6,0.0531,0.0976,0.7333,0.0973,0.1719,3,Distilled Student
+Teacher (5-shot),0.6667,0.0531,0.0984,0.7857,0.0973,0.1732,5,Teacher
+Distilled Student (5-shot),0.6,0.0531,0.0976,0.7333,0.0973,0.1719,5,Distilled Student
+Teacher (10-shot),0.6,0.0531,0.0976,0.7333,0.0973,0.1719,10,Teacher
+Distilled Student (10-shot),0.6,0.0531,0.0976,0.7333,0.0973,0.1719,10,Distilled Student
+Teacher (20-shot),0.6667,0.0531,0.0984,0.7857,0.0973,0.1732,20,Teacher
+Distilled Student (20-shot),0.5455,0.0531,0.0968,0.6875,0.0973,0.1705,20,Distilled Student

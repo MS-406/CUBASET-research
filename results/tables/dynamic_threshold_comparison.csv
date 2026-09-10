@@ -1,0 +1,5 @@
+model,precision_raw,recall_raw,f1_raw,precision_pa,recall_pa,f1_point_adjust
+LSTM Forecaster,0.4066,0.0858,0.1417,0.8185,0.5646,0.6683
+Conv-AE (1D),0.3525,0.082,0.1331,0.8078,0.6336,0.7102
+Transformer,0.3668,0.0844,0.1372,0.8074,0.6107,0.6954
+ELM,0.4673,0.1095,0.1774,0.8557,0.7403,0.7938

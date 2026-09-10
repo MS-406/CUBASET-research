@@ -1,0 +1,21 @@
+\begin{table}
+\caption{Headline Anomaly Detection Performance & Model Footprint across Pipeline Stages.}
+\label{tab:headline_results}
+\begin{tabular}{llll}
+\toprule
+stage & model & f1 & note \\
+\midrule
+Multi-seed (n=5) & Conv-AE (1D) & 0.7138 +/- 0.0392 & point-adjust F1, mean+/-std -- verified against multiseed_results.csv directly \\
+Multi-seed (n=5) & Distilled Student (5-shot) & 0.8609 +/- 0.0128 & point-adjust F1, mean+/-std -- verified against multiseed_results.csv directly \\
+Multi-seed (n=5) & ELM & 0.7771 +/- 0.0333 & point-adjust F1, mean+/-std -- verified against multiseed_results.csv directly \\
+Multi-seed (n=5) & LSTM Forecaster & 0.6595 +/- 0.0310 & point-adjust F1, mean+/-std -- verified against multiseed_results.csv directly \\
+Multi-seed (n=5) & MAML (5-shot) & 0.8121 +/- 0.0856 & point-adjust F1, mean+/-std -- verified against multiseed_results.csv directly \\
+Multi-seed (n=5) & Pretrained+FewShot (5-shot) & 0.8702 +/- 0.0198 & point-adjust F1, mean+/-std -- verified against multiseed_results.csv directly \\
+Multi-seed (n=5) & Transformer & 0.7240 +/- 0.0454 & point-adjust F1, mean+/-std -- verified against multiseed_results.csv directly \\
+Few-shot Adaptation (K=3) & DistilledStudent+FewShot (3-shot) & 0.8461 & Memory-compressed student (1.64 KB) \\
+Few-shot Adaptation (K=5) & DistilledStudent+FewShot (5-shot) & 0.8420 & Memory-compressed student (1.64 KB) \\
+Few-shot Adaptation (K=10) & DistilledStudent+FewShot (10-shot) & 0.8643 & Memory-compressed student (1.64 KB) \\
+Few-shot Adaptation (K=20) & DistilledStudent+FewShot (20-shot) & 0.8629 & Memory-compressed student (1.64 KB) \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,5 @@
+model,precision_raw,recall_raw,f1_raw,precision_pa,recall_pa,f1_point_adjust,k_shot,eval_time_s,model_size_kb
+DistilledStudent+FewShot (3-shot),0.4706,0.041,0.0755,0.9432,0.767,0.8461,3,1.8,1.64
+DistilledStudent+FewShot (5-shot),0.4275,0.041,0.0749,0.9332,0.767,0.842,5,2.1,1.64
+DistilledStudent+FewShot (10-shot),0.479,0.0418,0.0768,0.946,0.7956,0.8643,10,2.1,1.64
+DistilledStudent+FewShot (20-shot),0.551,0.0593,0.1071,0.9427,0.7956,0.8629,20,1.8,1.64

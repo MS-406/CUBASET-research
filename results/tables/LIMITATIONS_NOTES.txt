@@ -1,0 +1,8 @@
+Auto-generated limitations checklist -- read before writing Discussion/Limitations.
+
+1. OPS-SAT few-shot curve is flat: F1 varies by only 0.0014 across k=3/5/10/20 shots. More labeled examples are not improving performance on OPS-SAT -- report as a limitation.
+
+2. ESA-ADB mean F1 (0.653) is higher than OPS-SAT mean F1 (0.172). MANUALLY VERIFY both were scored with the same point-adjust window logic.
+
+3. Power-subsystem k-fold F1 is 0.0 in 4 of the fold results due to very few power channels per fold. Marked EXPLORATORY ONLY.
+
