@@ -1,18 +1,18 @@
-\begin{tabular}{lllrrrrrrl}
+\begin{tabular}{llllrrrrrl}
 \toprule
-Model / Method & Dataset & Domain & Streams Evaluated & Total Windows & Raw-F1 & Affiliation-F1 & Point-Adjusted F1 & Params & Footprint \\
+Model / Method & Dataset & Entities / Machines & Channels / Streams & Total Windows & Raw-F1 (Primary) & Affiliation-F1 & Point-Adjusted F1 & Params & Footprint \\
 \midrule
-v1 (Baseline ConvAE) & SMD & Non-Aerospace External (Out-of-Domain) & 140 & 352880 & 0.122700 & 0.202300 & 0.253300 & 1481 & 5.79 KB \\
-v1 (Baseline ConvAE) & NAB & Non-Aerospace External (Out-of-Domain) & 58 & 36019 & 0.080000 & 0.416700 & 0.436100 & 1481 & 5.79 KB \\
-v2 USAD Teacher (Dual-AE) & SMD & Non-Aerospace External (Out-of-Domain) & 140 & 352880 & 0.110400 & 0.197500 & 0.245600 & 27772 & 108.5 KB \\
-v2 USAD Teacher (Dual-AE) & NAB & Non-Aerospace External (Out-of-Domain) & 58 & 36019 & 0.085800 & 0.417600 & 0.454500 & 27772 & 108.5 KB \\
-v2 USAD + CORAL Domain Adaptation & SMD & Non-Aerospace External (Out-of-Domain) & 140 & 352880 & 0.110900 & 0.196400 & 0.244900 & 27772 & 108.5 KB \\
-v2 USAD + CORAL Domain Adaptation & NAB & Non-Aerospace External (Out-of-Domain) & 58 & 36019 & 0.089000 & 0.423100 & 0.460100 & 27772 & 108.5 KB \\
-v2 Anomaly Transformer & SMD & Non-Aerospace External (Out-of-Domain) & 140 & 352880 & 0.142100 & 0.217000 & 0.266200 & 8773 & 34.3 KB \\
-v2 Anomaly Transformer & NAB & Non-Aerospace External (Out-of-Domain) & 58 & 36019 & 0.078400 & 0.436800 & 0.475500 & 8773 & 34.3 KB \\
-v2 PatchTST Multi-Scale Backbone & SMD & Non-Aerospace External (Out-of-Domain) & 140 & 352880 & 0.149400 & 0.236300 & 0.292000 & 53284 & 208.1 KB \\
-v2 PatchTST Multi-Scale Backbone & NAB & Non-Aerospace External (Out-of-Domain) & 58 & 36019 & 0.054300 & 0.425000 & 0.440400 & 53284 & 208.1 KB \\
-v2 Distilled Edge Student (Proposed) & SMD & Non-Aerospace External (Out-of-Domain) & 140 & 352880 & 0.124600 & 0.204700 & 0.254800 & 421 & 1.64 KB \\
-v2 Distilled Edge Student (Proposed) & NAB & Non-Aerospace External (Out-of-Domain) & 58 & 36019 & 0.085800 & 0.439700 & 0.473300 & 421 & 1.64 KB \\
+v1 (Baseline ConvAE) & SMD & 28 Machines & 1064 Channels (38/machine) & 2681888 & 0.087000 & 0.153500 & 0.190000 & 1481 & 5.79 KB \\
+v1 (Baseline ConvAE) & NAB & 58 Series & 58 Streams & 36019 & 0.080000 & 0.416700 & 0.436100 & 1481 & 5.79 KB \\
+v2 USAD Teacher (Dual-AE) & SMD & 28 Machines & 1064 Channels (38/machine) & 2681888 & 0.082500 & 0.150100 & 0.188000 & 27772 & 108.5 KB \\
+v2 USAD Teacher (Dual-AE) & NAB & 58 Series & 58 Streams & 36019 & 0.085800 & 0.417600 & 0.454500 & 27772 & 108.5 KB \\
+v2 USAD + CORAL Domain Adaptation & SMD & 28 Machines & 1064 Channels (38/machine) & 2681888 & 0.082900 & 0.150400 & 0.188300 & 27772 & 108.5 KB \\
+v2 USAD + CORAL Domain Adaptation & NAB & 58 Series & 58 Streams & 36019 & 0.089000 & 0.423100 & 0.460100 & 27772 & 108.5 KB \\
+v2 Anomaly Transformer & SMD & 28 Machines & 1064 Channels (38/machine) & 2681888 & 0.102200 & 0.168000 & 0.198800 & 8773 & 34.3 KB \\
+v2 Anomaly Transformer & NAB & 58 Series & 58 Streams & 36019 & 0.078400 & 0.436800 & 0.475500 & 8773 & 34.3 KB \\
+v2 PatchTST Multi-Scale Backbone & SMD & 28 Machines & 1064 Channels (38/machine) & 2681888 & 0.105800 & 0.173200 & 0.213500 & 53284 & 208.1 KB \\
+v2 PatchTST Multi-Scale Backbone & NAB & 58 Series & 58 Streams & 36019 & 0.054300 & 0.425000 & 0.440400 & 53284 & 208.1 KB \\
+v2 Distilled Edge Student (Proposed) & SMD & 28 Machines & 1064 Channels (38/machine) & 2681888 & 0.088000 & 0.154800 & 0.192800 & 421 & 1.64 KB \\
+v2 Distilled Edge Student (Proposed) & NAB & 58 Series & 58 Streams & 36019 & 0.085800 & 0.439700 & 0.473300 & 421 & 1.64 KB \\
 \bottomrule
 \end{tabular}

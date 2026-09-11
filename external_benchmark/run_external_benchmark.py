@@ -92,9 +92,9 @@ def load_smd(root_dir):
         labels = np.loadtxt(label_path, delimiter=",").astype(int)
         
         # Univariate streams: SMD has 38 metrics per machine.
-        # Evaluate each metric channel independently (matching NASA SMAP/MSL channel protocol)
+        # Evaluate all 38 metric channels independently across all 28 machines (1,064 channels total)
         n_features = data.shape[1] if data.ndim > 1 else 1
-        for feat_idx in range(min(n_features, 5)):  # evaluate top channels per machine
+        for feat_idx in range(n_features):  # evaluate all 38 channels per machine
             feat_data = data[:, feat_idx:feat_idx+1]
             mean, std = feat_data.mean(), feat_data.std() + 1e-8
             norm_data = (feat_data - mean) / std
@@ -108,7 +108,8 @@ def load_smd(root_dir):
                     yw[i] = 1
             
             entities.append({
-                "entity_id": f"{machine_id}_feat{feat_idx}",
+                "entity_id": f"{machine_id}_ch{feat_idx}",
+                "machine_id": machine_id,
                 "X_windows": Xw,
                 "y_windows": yw
             })
@@ -320,13 +321,14 @@ def main():
             mean_aff_f1 = float(np.mean(ent_aff_f1s)) if ent_aff_f1s else 0.0
             mean_pa_f1 = float(np.mean(ent_pa_f1s)) if ent_pa_f1s else 0.0
 
+            n_machines = len(set(e.get("machine_id", e["entity_id"]) for e in entities))
             rows.append({
                 "Model / Method": model_name,
                 "Dataset": dataset_name,
-                "Domain": "Non-Aerospace External (Out-of-Domain)",
-                "Streams Evaluated": len(entities),
+                "Entities / Machines": f"{n_machines} Machines" if dataset_name == "SMD" else f"{len(entities)} Series",
+                "Channels / Streams": f"{len(entities)} Channels (38/machine)" if dataset_name == "SMD" else f"{len(entities)} Streams",
                 "Total Windows": sum(len(e["X_windows"]) for e in entities),
-                "Raw-F1": round(mean_raw_f1, 4),
+                "Raw-F1 (Primary)": round(mean_raw_f1, 4),
                 "Affiliation-F1": round(mean_aff_f1, 4),
                 "Point-Adjusted F1": round(mean_pa_f1, 4),
                 "Params": cfg["params"],
