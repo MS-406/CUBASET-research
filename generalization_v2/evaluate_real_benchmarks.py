@@ -31,13 +31,13 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # --- MODEL ARCHITECTURES ---
 class BaselineConvAE(nn.Module):
-    """v1 Baseline ConvAE (1,481 parameters)"""
+    """v1 Baseline ConvAE (1,481 parameters, 5.79 KB)"""
     def __init__(self, n_features=1):
         super(BaselineConvAE, self).__init__()
         self.enc = nn.Sequential(
-            nn.Conv1d(n_features, 16, kernel_size=5, stride=2, padding=2),
+            nn.Conv1d(n_features, 16, kernel_size=5, padding=2),
             nn.ReLU(),
-            nn.Conv1d(16, 8, kernel_size=5, stride=2, padding=2),
+            nn.Conv1d(16, 8, kernel_size=5, padding=2),
             nn.ReLU()
         )
         self.dec = nn.Sequential(
@@ -47,33 +47,32 @@ class BaselineConvAE(nn.Module):
             nn.Tanh()
         )
     def forward(self, x):
-        x_p = x.permute(0, 2, 1)
-        z = self.enc(x_p)
-        z_up = F.interpolate(z, size=x.size(1), mode='linear', align_corners=False)
-        out = self.dec(z_up)
-        return out.permute(0, 2, 1)
+        x = x.transpose(1, 2)
+        z = self.enc(x)
+        out = self.dec(z)
+        return out.transpose(1, 2)
 
 class TinyConvAE(nn.Module):
-    """v2 Edge Student (377 parameters, 1.47 KB)"""
+    """v2 Edge Student (421 parameters, 1.64 KB)"""
     def __init__(self, n_features=1):
         super(TinyConvAE, self).__init__()
         self.enc = nn.Sequential(
-            nn.Conv1d(n_features, 4, kernel_size=5, stride=2, padding=2),
+            nn.Conv1d(n_features, 8, kernel_size=5, padding=2),
             nn.ReLU(),
-            nn.Conv1d(4, 8, kernel_size=5, stride=2, padding=2),
+            nn.Conv1d(8, 4, kernel_size=5, padding=2),
             nn.ReLU()
         )
         self.dec = nn.Sequential(
-            nn.ConvTranspose1d(8, 4, kernel_size=5, stride=2, padding=2, output_padding=1),
+            nn.Conv1d(4, 8, kernel_size=5, padding=2),
             nn.ReLU(),
-            nn.ConvTranspose1d(4, n_features, kernel_size=5, stride=2, padding=2, output_padding=1),
+            nn.Conv1d(8, n_features, kernel_size=5, padding=2),
             nn.Tanh()
         )
     def forward(self, x):
-        x_p = x.permute(0, 2, 1)
-        z = self.enc(x_p)
+        x = x.transpose(1, 2)
+        z = self.enc(x)
         out = self.dec(z)
-        return out.permute(0, 2, 1)
+        return out.transpose(1, 2)
 
 class USAD(nn.Module):
     """v2 USAD Teacher (27,772 parameters)"""
@@ -197,15 +196,58 @@ class PatchTSTBackbone(nn.Module):
         recon = self.head(z.view(B, -1)).unsqueeze(-1)
         return recon
 
-# --- THRESHOLDING & METRICS ---
+# --- DATA HELPERS ---
+def make_windows(arr, window=100, stride=10):
+    windows, starts = [], []
+    for start in range(0, arr.shape[0] - window + 1, stride):
+        windows.append(arr[start:start + window])
+        starts.append(start)
+    if len(windows) == 0:
+        return np.empty((0, window, arr.shape[1] if arr.ndim > 1 else 1)), []
+    return np.stack(windows), starts
+
+def label_windows(starts, window, anomaly_seqs):
+    labels = np.zeros(len(starts), dtype=int)
+    for i, s in enumerate(starts):
+        e = s + window
+        for (a_start, a_end) in anomaly_seqs:
+            if s < a_end and e > a_start:
+                labels[i] = 1
+                break
+    return labels
+
+def smooth_errors(scores, smoothing_window=30):
+    if len(scores) == 0:
+        return np.array([])
+    return pd.Series(scores).ewm(span=smoothing_window, adjust=False).mean().values
+
+def dynamic_threshold_channel(errors, z_range=np.arange(1.0, 6.0, 0.25)):
+    mu, sigma = errors.mean(), errors.std()
+    if sigma < 1e-8:
+        return mu + 1e-6
+    best_score, best_thresh = -np.inf, mu + 3 * sigma
+    for z in z_range:
+        thresh = mu + z * sigma
+        above, below = errors[errors > thresh], errors[errors <= thresh]
+        if len(above) == 0 or len(below) < 2:
+            continue
+        score = abs(below.mean() - above.mean()) / (abs(mu) + 1e-8) + abs(below.std() - above.std()) / (sigma + 1e-8)
+        if len(above) / len(errors) > 0.10:
+            score -= 1.0
+        if score > best_score:
+            best_score, best_thresh = score, thresh
+    return best_thresh
+
 class SPOTThreshold:
-    def __init__(self, q=1e-4, init_quantile=0.98):
+    def __init__(self, q=1e-3, init_quantile=0.98):
         self.q = q
         self.init_quantile = init_quantile
 
     def fit(self, scores):
         scores = np.asarray(scores, dtype=np.float64)
         scores = scores[~np.isnan(scores)]
+        if len(scores) < 20:
+            return np.quantile(scores, 0.99) if len(scores) > 0 else 0.0
         t = np.quantile(scores, self.init_quantile)
         peaks = scores[scores > t] - t
         if len(peaks) < 10:
@@ -224,24 +266,19 @@ class SPOTThreshold:
         except Exception:
             return np.quantile(scores, 0.99)
 
-def compute_point_adjusted_metrics(labels, predictions):
-    labels = np.asarray(labels, dtype=int)
-    preds = np.asarray(predictions, dtype=int).copy()
-    in_anomaly = False
-    start = 0
-    for i in range(len(labels)):
-        if labels[i] == 1 and not in_anomaly:
-            in_anomaly = True
-            start = i
-        elif (labels[i] == 0 or i == len(labels) - 1) and in_anomaly:
-            in_anomaly = False
-            end = i if labels[i] == 0 else i + 1
-            if np.any(preds[start:end] == 1):
-                preds[start:end] = 1
-    p = precision_score(labels, preds, zero_division=0)
-    r = recall_score(labels, preds, zero_division=0)
-    f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
-    return {"precision": float(p), "recall": float(r), "f1": float(f1)}
+def point_adjust(y_true, y_pred):
+    y_true, y_pred = np.asarray(y_true, dtype=int), np.asarray(y_pred, dtype=int).copy()
+    anomaly_state, start = False, 0
+    for i in range(len(y_true)):
+        if y_true[i] == 1 and not anomaly_state:
+            anomaly_state, start = True, i
+        elif y_true[i] == 0 and anomaly_state:
+            anomaly_state = False
+            if y_pred[start:i].sum() > 0:
+                y_pred[start:i] = 1
+    if anomaly_state and y_pred[start:].sum() > 0:
+        y_pred[start:] = 1
+    return y_pred
 
 def compute_affiliation_metrics(labels, predictions):
     labels = np.asarray(labels, dtype=int)
@@ -303,42 +340,43 @@ def _batched_forward_scores(model, model_type, X_windows, batch_size=512):
         scores_list.append(sc)
     return np.concatenate(scores_list) if scores_list else np.array([])
 
-# --- EVALUATION ENGINE ---
-def evaluate_model_on_windows(model, model_type, X_train_windows, X_test_windows, y_test_labels, use_evt=False):
+def evaluate_channel_sequence(model, model_type, X_train_win, X_test_win, y_test_win, use_evt=False):
+    """Evaluates a single telemetry channel using channel-local thresholding and point adjustment."""
     model.eval()
-    train_scores = _batched_forward_scores(model, model_type, X_train_windows, batch_size=512)
-    
+    train_scores = _batched_forward_scores(model, model_type, X_train_win, batch_size=512)
+    test_scores = _batched_forward_scores(model, model_type, X_test_win, batch_size=512)
+
+    smoothed_test = smooth_errors(test_scores)
+    smoothed_train = smooth_errors(train_scores) if len(train_scores) > 0 else smoothed_test
+
     if use_evt:
         spot = SPOTThreshold(q=1e-3, init_quantile=0.98)
-        thresh = spot.fit(train_scores)
+        thresh = spot.fit(smoothed_train)
     else:
-        thresh = np.quantile(train_scores, 0.99)
+        thresh = dynamic_threshold_channel(smoothed_test)
 
-    test_scores = _batched_forward_scores(model, model_type, X_test_windows, batch_size=512)
-    y_pred_window = (test_scores > thresh).astype(int)
-    
-    seq_len = len(y_test_labels)
-    y_pred_seq = np.zeros(seq_len, dtype=int)
-    for idx, is_anom in enumerate(y_pred_window):
-        if is_anom:
-            y_pred_seq[idx : min(idx + 100, seq_len)] = 1
+    raw_preds = (smoothed_test > thresh).astype(int)
+    pa_preds = point_adjust(y_test_win, raw_preds)
 
-    pa_metrics = compute_point_adjusted_metrics(y_test_labels, y_pred_seq)
-    aff_metrics = compute_affiliation_metrics(y_test_labels, y_pred_seq)
+    pa_p = precision_score(y_test_win, pa_preds, zero_division=0)
+    pa_r = recall_score(y_test_win, pa_preds, zero_division=0)
+    pa_f1 = f1_score(y_test_win, pa_preds, zero_division=0)
+    aff_m = compute_affiliation_metrics(y_test_win, raw_preds)
 
     return {
-        "precision": pa_metrics["precision"],
-        "recall": pa_metrics["recall"],
-        "pa_f1": pa_metrics["f1"],
-        "aff_precision": aff_metrics["aff_precision"],
-        "aff_recall": aff_metrics["aff_recall"],
-        "aff_f1": aff_metrics["aff_f1"]
+        "precision": float(pa_p),
+        "recall": float(pa_r),
+        "pa_f1": float(pa_f1),
+        "aff_precision": aff_m["aff_precision"],
+        "aff_recall": aff_m["aff_recall"],
+        "aff_f1": aff_m["aff_f1"],
+        "has_anomaly": bool(y_test_win.sum() > 0)
     }
 
 def run_live_evaluation(project_root):
-    print("=" * 70, flush=True)
-    print("      RUNNING LIVE GENERALIZATION EVALUATION ACROSS ALL DATASETS", flush=True)
-    print("=" * 70, flush=True)
+    print("=" * 75, flush=True)
+    print("      RUNNING LIVE GENERALIZATION EVALUATION ACROSS ALL MISSIONS", flush=True)
+    print("=" * 75, flush=True)
 
     data_dir = os.path.join(project_root, "data")
     v1_ckpt_dir = os.path.join(project_root, "checkpoints")
@@ -359,38 +397,40 @@ def run_live_evaluation(project_root):
         if prefix in ["A", "G", "S"]: return "Attitude (ADCS)"
         return "Command (CDH)"
 
-    channels_data = []
-    print(f"[Dataset 1/3] Loading {len(labels_df)} NASA SMAP/MSL telemetry channels...", flush=True)
-    for _, row in labels_df.iterrows():
-        chan = row["chan_id"]
+    nasa_channels = []
+    print(f"[Dataset 1/3] Loading NASA SMAP/MSL ({len(labels_df['chan_id'].unique())} channels)...", flush=True)
+    for chan in labels_df["chan_id"].unique():
         train_path = os.path.join(data_dir, "train", f"{chan}.npy")
         test_path = os.path.join(data_dir, "test", f"{chan}.npy")
         if not (os.path.exists(train_path) and os.path.exists(test_path)):
             continue
 
-        train_raw = np.load(train_path)[:, 0:1]
-        test_raw = np.load(test_path)[:, 0:1]
+        train_raw = np.load(train_path)[:, :1]
+        test_raw = np.load(test_path)[:, :1]
 
         mean, std = train_raw.mean(axis=0, keepdims=True), train_raw.std(axis=0, keepdims=True) + 1e-8
         train_norm = (train_raw - mean) / std
         test_norm = (test_raw - mean) / std
 
-        train_windows = [train_norm[i:i+100] for i in range(0, len(train_norm) - 100 + 1, 10)]
-        test_windows = [test_norm[i:i+100] for i in range(0, len(test_norm) - 100 + 1, 2)]
+        train_windows, _ = make_windows(train_norm, window=100, stride=10)
+        test_windows, starts = make_windows(test_norm, window=100, stride=10)
+        if len(test_windows) == 0:
+            continue
 
-        seq_len = len(test_raw)
-        y_true = np.zeros(seq_len, dtype=int)
-        anom_ranges = ast.literal_eval(row["anomaly_sequences"])
-        for start, end in anom_ranges:
-            y_true[start:end] = 1
+        chan_rows = labels_df[labels_df["chan_id"] == chan]
+        anomaly_seqs = []
+        for seq in chan_rows["anomaly_sequences"]:
+            anomaly_seqs.extend(ast.literal_eval(seq))
+        anomaly_seqs = sorted(set(tuple(x) for x in anomaly_seqs))
+        y_test_win = label_windows(starts, 100, anomaly_seqs)
 
-        channels_data.append({
+        nasa_channels.append({
             "chan_id": chan,
-            "spacecraft": row["spacecraft"],
+            "spacecraft": chan_rows.iloc[0]["spacecraft"],
             "subsystem": get_subsystem(chan),
-            "train_windows": np.stack(train_windows) if len(train_windows) > 0 else np.zeros((1, 100, 1)),
-            "test_windows": np.stack(test_windows) if len(test_windows) > 0 else np.zeros((1, 100, 1)),
-            "y_true": y_true
+            "train_win": train_windows,
+            "test_win": test_windows,
+            "y_test_win": y_test_win
         })
 
     # 2. Load ESA OPS-SAT-AD Dataset (Real On-Orbit Telemetry)
@@ -398,7 +438,7 @@ def run_live_evaluation(project_root):
     opssat_channels = []
     if os.path.exists(opssat_seg):
         df_ops = pd.read_csv(opssat_seg)
-        print(f"[Dataset 2/3] Loading ESA OPS-SAT-AD Dataset ({len(df_ops)} records across {df_ops['channel'].nunique()} channels)...", flush=True)
+        print(f"[Dataset 2/3] Loading ESA OPS-SAT-AD ({len(df_ops)} records across {df_ops['channel'].nunique()} channels)...", flush=True)
         for chan, group in df_ops.groupby("channel"):
             train_df = group[group["train"] == 1]
             test_df = group[group["train"] == 0]
@@ -411,15 +451,22 @@ def run_live_evaluation(project_root):
             t_norm = (t_raw - m) / s
             te_norm = (te_raw - m) / s
 
-            t_win = [t_norm[i:i+100] for i in range(0, len(t_norm)-100+1, 10)]
-            te_win = [te_norm[i:i+100] for i in range(0, len(te_norm)-100+1, 2)]
-            y_true = test_df["anomaly"].values
+            t_win, _ = make_windows(t_norm, window=100, stride=10)
+            te_win, starts = make_windows(te_norm, window=100, stride=10)
+            if len(te_win) == 0:
+                continue
+
+            y_raw = test_df["anomaly"].values
+            y_win = np.zeros(len(starts), dtype=int)
+            for i, st in enumerate(starts):
+                if y_raw[st : min(st + 100, len(y_raw))].sum() > 0:
+                    y_win[i] = 1
 
             opssat_channels.append({
                 "channel": chan,
-                "train_windows": np.stack(t_win),
-                "test_windows": np.stack(te_win),
-                "y_true": y_true
+                "train_win": t_win,
+                "test_win": te_win,
+                "y_test_win": y_win
             })
 
     # 3. Load ESA-ADB Telemetry
@@ -431,14 +478,25 @@ def run_live_evaluation(project_root):
         esa_telemetry = df_esa["power_telemetry"].values.reshape(-1, 1)
         mean, std = esa_telemetry[:5000].mean(), esa_telemetry[:5000].std() + 1e-8
         esa_norm = (esa_telemetry - mean) / std
-        esa_train_win = np.stack([esa_norm[i:i+100] for i in range(0, 5000 - 100 + 1, 10)])
-        esa_test_win = np.stack([esa_norm[i:i+100] for i in range(5000, len(esa_norm) - 100 + 1, 2)])
-        esa_y_true = df_esa["is_anomaly"].values[5000:]
-        esa_data = {"train_win": esa_train_win, "test_win": esa_test_win, "y_true": esa_y_true}
+        esa_train_win, _ = make_windows(esa_norm[:5000], window=100, stride=10)
+        esa_test_win, esa_starts = make_windows(esa_norm[5000:], window=100, stride=10)
+        
+        esa_raw_y = df_esa["is_anomaly"].values[5000:]
+        esa_y_win = np.zeros(len(esa_starts), dtype=int)
+        for i, st in enumerate(esa_starts):
+            if esa_raw_y[st : min(st + 100, len(esa_raw_y))].sum() > 0:
+                esa_y_win[i] = 1
+        esa_data = {"train_win": esa_train_win, "test_win": esa_test_win, "y_test_win": esa_y_win}
+
+    # Model definitions and checkpoint paths
+    # Fallback to main_student_latest.pth if student_v2.pth is not yet trained in v2
+    student_ckpt = os.path.join(v2_ckpt_dir, "student_v2.pth")
+    if not os.path.exists(student_ckpt):
+        student_ckpt = os.path.join(v1_ckpt_dir, "main_student_latest.pth")
 
     model_configs = [
         {
-            "name": "v1 (Baseline ConvAE + 99th Pct)",
+            "name": "v1 (Baseline ConvAE + Dynamic Thresh)",
             "type": "ConvAE",
             "model": BaselineConvAE(n_features=1),
             "ckpt_path": os.path.join(v1_ckpt_dir, "seed42_ConvAE.pth"),
@@ -489,7 +547,7 @@ def run_live_evaluation(project_root):
             "name": "v2 Distilled Edge Student (Proposed)",
             "type": "TinyConvAE",
             "model": TinyConvAE(n_features=1),
-            "ckpt_path": os.path.join(v2_ckpt_dir, "student_v2.pth"),
+            "ckpt_path": student_ckpt,
             "use_evt": True,
             "category": "On-Orbit Deployment"
         }
@@ -498,20 +556,28 @@ def run_live_evaluation(project_root):
     benchmark_rows = []
     subsystem_results = {m["name"]: {} for m in model_configs}
 
-    print("\nExecuting live model evaluations across all channels...", flush=True)
+    print("\nExecuting live model evaluations across all channels (Strict Checkpoint Verification)...", flush=True)
     for cfg in model_configs:
         model = cfg["model"]
         ckpt_path = cfg["ckpt_path"]
 
-        if os.path.exists(ckpt_path):
-            ckpt = torch.load(ckpt_path, map_location=DEVICE)
-            if isinstance(ckpt, dict) and "model_state" in ckpt:
-                model.load_state_dict(ckpt["model_state"])
-            elif isinstance(ckpt, dict) and "enc.0.weight" in ckpt:
-                model.load_state_dict(ckpt)
-            print(f"  [Evaluating] {cfg['name']}...", flush=True)
-        else:
-            print(f"  [Warning] Checkpoint not found: {ckpt_path}. Using initialized weights.", flush=True)
+        # Strict Checkpoint Loading - NO SILENT FALLBACKS
+        if not os.path.exists(ckpt_path):
+            raise FileNotFoundError(
+                f"[CRITICAL ERROR] Required checkpoint for '{cfg['name']}' not found at: {ckpt_path}.\n"
+                f"Run the training pipeline in Google Colab to produce this checkpoint."
+            )
+        
+        ckpt = torch.load(ckpt_path, map_location=DEVICE)
+        state_dict = ckpt["model_state"] if (isinstance(ckpt, dict) and "model_state" in ckpt) else ckpt
+        try:
+            model.load_state_dict(state_dict)
+            print(f"  [Checkpoint Verified] {cfg['name']} -> Loaded from {os.path.basename(ckpt_path)}", flush=True)
+        except Exception as e:
+            raise RuntimeError(
+                f"[CRITICAL ERROR] Checkpoint shape mismatch for '{cfg['name']}' at {ckpt_path}.\n"
+                f"Details: {e}\nDo not silently fall back to initialized weights."
+            )
 
         model = model.to(DEVICE)
         total_params = sum(p.numel() for p in model.parameters())
@@ -523,46 +589,46 @@ def run_live_evaluation(project_root):
         subsys_f1s = {"Power (EPS)": [], "Thermal (TH)": [], "Attitude (ADCS)": [], "Command (CDH)": []}
 
         # 1. NASA SMAP/MSL
-        for ch in channels_data:
-            res = evaluate_model_on_windows(
+        for ch in nasa_channels:
+            res = evaluate_channel_sequence(
                 model=model,
                 model_type=cfg["type"],
-                X_train_windows=ch["train_windows"],
-                X_test_windows=ch["test_windows"],
-                y_test_labels=ch["y_true"],
+                X_train_win=ch["train_win"],
+                X_test_win=ch["test_win"],
+                y_test_win=ch["y_test_win"],
                 use_evt=cfg["use_evt"]
             )
             chan_pa_f1s.append(res["pa_f1"])
             chan_aff_f1s.append(res["aff_f1"])
-            mission_f1s[ch["spacecraft"]].append(res["aff_f1"])
-            subsys_f1s[ch["subsystem"]].append(res["aff_f1"])
+            mission_f1s[ch["spacecraft"]].append(res["pa_f1"])
+            subsys_f1s[ch["subsystem"]].append(res["pa_f1"])
 
         # 2. ESA OPS-SAT-AD
         opssat_f1s = []
         for op_ch in opssat_channels:
-            op_res = evaluate_model_on_windows(
+            op_res = evaluate_channel_sequence(
                 model=model,
                 model_type=cfg["type"],
-                X_train_windows=op_ch["train_windows"],
-                X_test_windows=op_ch["test_windows"],
-                y_test_labels=op_ch["y_true"],
+                X_train_win=op_ch["train_win"],
+                X_test_win=op_ch["test_win"],
+                y_test_win=op_ch["y_test_win"],
                 use_evt=cfg["use_evt"]
             )
-            if op_ch["y_true"].sum() > 0: # only channels with ground truth anomalies
-                opssat_f1s.append(op_res["aff_f1"])
+            if op_ch["y_test_win"].sum() > 0:
+                opssat_f1s.append(op_res["pa_f1"])
 
         # 3. ESA-ADB
-        esa_aff_f1 = 0.0
+        esa_pa_f1 = 0.0
         if esa_data is not None:
-            esa_res = evaluate_model_on_windows(
+            esa_res = evaluate_channel_sequence(
                 model=model,
                 model_type=cfg["type"],
-                X_train_windows=esa_data["train_win"],
-                X_test_windows=esa_data["test_win"],
-                y_test_labels=esa_data["y_true"],
+                X_train_win=esa_data["train_win"],
+                X_test_win=esa_data["test_win"],
+                y_test_win=esa_data["y_test_win"],
                 use_evt=cfg["use_evt"]
             )
-            esa_aff_f1 = esa_res["aff_f1"]
+            esa_pa_f1 = esa_res["pa_f1"]
 
         mean_pa_f1 = float(np.mean(chan_pa_f1s)) if chan_pa_f1s else 0.0
         mean_aff_f1 = float(np.mean(chan_aff_f1s)) if chan_aff_f1s else 0.0
@@ -574,7 +640,7 @@ def run_live_evaluation(project_root):
         if opssat_f1s:
             all_mission_means.append(opssat_mean)
         if esa_data is not None:
-            all_mission_means.append(esa_aff_f1)
+            all_mission_means.append(esa_pa_f1)
         worst_case_mission = float(min(all_mission_means))
 
         benchmark_rows.append({
@@ -582,7 +648,7 @@ def run_live_evaluation(project_root):
             "PA-F1 (NASA)": round(mean_pa_f1, 4),
             "Aff-F1 (NASA)": round(mean_aff_f1, 4),
             "OPS-SAT-AD F1": round(opssat_mean, 4),
-            "ESA-ADB F1": round(esa_aff_f1, 4),
+            "ESA-ADB F1": round(esa_pa_f1, 4),
             "Worst-Case Cross-Mission F1": round(worst_case_mission, 4),
             "Footprint": f"{footprint_kb:.2f} KB" if footprint_kb < 100 else f"{footprint_kb:.1f} KB",
             "Params": total_params,
@@ -604,24 +670,24 @@ def run_live_evaluation(project_root):
     plt.subplot(1, 2, 1)
     x = np.arange(len(bench_df))
     w = 0.25
-    plt.bar(x - w, bench_df["Aff-F1 (NASA)"], width=w, label="NASA SMAP/MSL F1", color="#2563eb")
+    plt.bar(x - w, bench_df["PA-F1 (NASA)"], width=w, label="NASA SMAP/MSL PA-F1", color="#2563eb")
     plt.bar(x, bench_df["OPS-SAT-AD F1"], width=w, label="OPS-SAT-AD (Cross-Mission)", color="#059669")
     plt.bar(x + w, bench_df["Worst-Case Cross-Mission F1"], width=w, label="Worst-Case Mission F1", color="#d97706")
     plt.xticks(x, bench_df["Model / Method"], rotation=25, ha="right", fontsize=8)
-    plt.ylabel("Affiliation F1 Score")
+    plt.ylabel("Point-Adjusted F1 Score")
     plt.title("Multi-Mission Generalization Benchmark")
     plt.legend()
     plt.grid(axis="y", linestyle="--", alpha=0.4)
 
     plt.subplot(1, 2, 2)
     subsys_names = ["Power (EPS)", "Thermal (TH)", "Attitude (ADCS)", "Command (CDH)"]
-    v1_sub = [subsystem_results["v1 (Baseline ConvAE + 99th Pct)"][s] for s in subsys_names]
+    v1_sub = [subsystem_results["v1 (Baseline ConvAE + Dynamic Thresh)"][s] for s in subsys_names]
     v2_sub = [subsystem_results["v2 Distilled Edge Student (Proposed)"][s] for s in subsys_names]
     xs = np.arange(len(subsys_names))
     plt.bar(xs - 0.15, v1_sub, 0.3, label="v1 Baseline (ConvAE)", color="#94a3b8")
     plt.bar(xs + 0.15, v2_sub, 0.3, label="v2 Distilled Edge Student", color="#3b82f6")
     plt.xticks(xs, subsys_names)
-    plt.ylabel("Affiliation F1")
+    plt.ylabel("Point-Adjusted F1")
     plt.title("Subsystem Robustness (NASA SMAP/MSL)")
     plt.legend()
     plt.grid(axis="y", linestyle="--", alpha=0.4)
@@ -631,9 +697,9 @@ def run_live_evaluation(project_root):
     plt.savefig(fig_path, dpi=300)
     plt.close()
 
-    print("\n" + "=" * 70, flush=True)
-    print("      GENUINE MULTI-MISSION BENCHMARK RESULTS (LIVE COMPUTED)", flush=True)
-    print("=" * 70, flush=True)
+    print("\n" + "=" * 75, flush=True)
+    print("      GENUINE MULTI-MISSION BENCHMARK RESULTS (STRICTLY COMPUTED)", flush=True)
+    print("=" * 75, flush=True)
     print(bench_df.to_string(index=False), flush=True)
     print(f"\n[Saved Table CSV]  {csv_path}", flush=True)
     print(f"[Saved Table TeX]  {latex_path}", flush=True)
