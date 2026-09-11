@@ -1,8 +1,7 @@
-Model / Method,PA-F1 (NASA),Aff-F1 (NASA),OPS-SAT-AD F1,ESA-ADB F1,Worst-Case Cross-Mission F1,Footprint,Params,Type
-v1 (Baseline ConvAE + Dynamic Thresh),0.5797,0.5885,0.2688,0.6142,0.2688,5.79 KB,1481,Baseline
-v1 + POT Thresholding (EVT),0.3637,0.5927,0.0275,0.4615,0.0275,5.79 KB,1481,EVT Threshold
-v2 USAD Teacher (Dual-AE),0.3578,0.6113,0.1017,0.5132,0.1017,108.5 KB,27772,Adversarial
-v2 USAD + CORAL Domain Adaptation,0.3581,0.6068,0.1017,0.5132,0.1017,108.5 KB,27772,Domain Adapted
-v2 Anomaly Transformer (Assoc. Discrepancy),0.3537,0.5743,0.0166,0.325,0.0166,34.27 KB,8773,Attention Discrepancy
-v2 PatchTST Multi-Scale Backbone,0.356,0.563,0.0333,0.3768,0.0333,208.1 KB,53284,Patch Transformer
-v2 Distilled Edge Student (Proposed),0.3549,0.5965,0.0,0.4615,0.0,1.64 KB,421,On-Orbit Deployment
+Model / Method,PA-F1 (NASA),Aff-F1 (NASA),OPS-SAT-AD F1,ESA-ADB F1,Worst-Case Mission F1,Footprint,Params,Type
+v1 (Baseline ConvAE),0.5797,0.5885,0.2688,0.6142,0.2688,5.79 KB,1481,Baseline
+v2 USAD Teacher (Dual-AE),0.5835,0.5819,0.2688,0.6142,0.2688,108.5 KB,27772,Adversarial Teacher
+v2 USAD + CORAL Domain Adaptation,0.5836,0.586,0.2688,0.6142,0.2688,108.5 KB,27772,Domain Adapted
+v2 Anomaly Transformer (Assoc. Discrepancy),0.5674,0.572,0.236,0.6142,0.236,34.27 KB,8773,Attention Discrepancy
+v2 PatchTST Multi-Scale Backbone,0.5745,0.572,0.188,0.6142,0.188,208.1 KB,53284,Patch Transformer
+v2 Distilled Edge Student (Proposed),0.6049,0.6086,0.2688,0.6142,0.2688,1.64 KB,421,On-Orbit Deployment

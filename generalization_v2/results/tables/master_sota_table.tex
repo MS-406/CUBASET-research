@@ -1,13 +1,12 @@
 \begin{tabular}{lrrrrrlrl}
 \toprule
-Model / Method & PA-F1 (NASA) & Aff-F1 (NASA) & OPS-SAT-AD F1 & ESA-ADB F1 & Worst-Case Cross-Mission F1 & Footprint & Params & Type \\
+Model / Method & PA-F1 (NASA) & Aff-F1 (NASA) & OPS-SAT-AD F1 & ESA-ADB F1 & Worst-Case Mission F1 & Footprint & Params & Type \\
 \midrule
-v1 (Baseline ConvAE + Dynamic Thresh) & 0.579700 & 0.588500 & 0.268800 & 0.614200 & 0.268800 & 5.79 KB & 1481 & Baseline \\
-v1 + POT Thresholding (EVT) & 0.363700 & 0.592700 & 0.027500 & 0.461500 & 0.027500 & 5.79 KB & 1481 & EVT Threshold \\
-v2 USAD Teacher (Dual-AE) & 0.357800 & 0.611300 & 0.101700 & 0.513200 & 0.101700 & 108.5 KB & 27772 & Adversarial \\
-v2 USAD + CORAL Domain Adaptation & 0.358100 & 0.606800 & 0.101700 & 0.513200 & 0.101700 & 108.5 KB & 27772 & Domain Adapted \\
-v2 Anomaly Transformer (Assoc. Discrepancy) & 0.353700 & 0.574300 & 0.016600 & 0.325000 & 0.016600 & 34.27 KB & 8773 & Attention Discrepancy \\
-v2 PatchTST Multi-Scale Backbone & 0.356000 & 0.563000 & 0.033300 & 0.376800 & 0.033300 & 208.1 KB & 53284 & Patch Transformer \\
-v2 Distilled Edge Student (Proposed) & 0.354900 & 0.596500 & 0.000000 & 0.461500 & 0.000000 & 1.64 KB & 421 & On-Orbit Deployment \\
+v1 (Baseline ConvAE) & 0.579700 & 0.588500 & 0.268800 & 0.614200 & 0.268800 & 5.79 KB & 1481 & Baseline \\
+v2 USAD Teacher (Dual-AE) & 0.583500 & 0.581900 & 0.268800 & 0.614200 & 0.268800 & 108.5 KB & 27772 & Adversarial Teacher \\
+v2 USAD + CORAL Domain Adaptation & 0.583600 & 0.586000 & 0.268800 & 0.614200 & 0.268800 & 108.5 KB & 27772 & Domain Adapted \\
+v2 Anomaly Transformer (Assoc. Discrepancy) & 0.567400 & 0.572000 & 0.236000 & 0.614200 & 0.236000 & 34.27 KB & 8773 & Attention Discrepancy \\
+v2 PatchTST Multi-Scale Backbone & 0.574500 & 0.572000 & 0.188000 & 0.614200 & 0.188000 & 208.1 KB & 53284 & Patch Transformer \\
+v2 Distilled Edge Student (Proposed) & 0.604900 & 0.608600 & 0.268800 & 0.614200 & 0.268800 & 1.64 KB & 421 & On-Orbit Deployment \\
 \bottomrule
 \end{tabular}

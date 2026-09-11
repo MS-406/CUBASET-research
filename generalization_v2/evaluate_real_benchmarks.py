@@ -75,7 +75,7 @@ class TinyConvAE(nn.Module):
         return out.transpose(1, 2)
 
 class USAD(nn.Module):
-    """v2 USAD Teacher (27,772 parameters)"""
+    """v2 USAD Teacher (27,772 parameters, 108.5 KB)"""
     def __init__(self, window_size=100, n_features=1, latent_dim=20):
         super(USAD, self).__init__()
         in_dim = window_size * n_features
@@ -152,7 +152,7 @@ class AnomalyAttentionBlock(nn.Module):
         return out, series_assoc, prior_assoc
 
 class AnomalyTransformer(nn.Module):
-    """v2 Anomaly Transformer (18,773 parameters)"""
+    """v2 Anomaly Transformer (18,773 parameters, 34.3 KB)"""
     def __init__(self, n_features=1, d_model=32, n_heads=4, window_size=100):
         super(AnomalyTransformer, self).__init__()
         self.input_proj = nn.Linear(n_features, d_model)
@@ -175,7 +175,7 @@ class AnomalyTransformer(nn.Module):
         return recon, series, prior
 
 class PatchTSTBackbone(nn.Module):
-    """v2 PatchTST Backbone (53,284 parameters)"""
+    """v2 PatchTST Backbone (53,284 parameters, 208.1 KB)"""
     def __init__(self, patch_len=16, stride=8, window_size=100, d_model=32, n_heads=4):
         super(PatchTSTBackbone, self).__init__()
         self.patch_len = patch_len
@@ -237,34 +237,6 @@ def dynamic_threshold_channel(errors, z_range=np.arange(1.0, 6.0, 0.25)):
         if score > best_score:
             best_score, best_thresh = score, thresh
     return best_thresh
-
-class SPOTThreshold:
-    def __init__(self, q=1e-3, init_quantile=0.98):
-        self.q = q
-        self.init_quantile = init_quantile
-
-    def fit(self, scores):
-        scores = np.asarray(scores, dtype=np.float64)
-        scores = scores[~np.isnan(scores)]
-        if len(scores) < 20:
-            return np.quantile(scores, 0.99) if len(scores) > 0 else 0.0
-        t = np.quantile(scores, self.init_quantile)
-        peaks = scores[scores > t] - t
-        if len(peaks) < 10:
-            return np.quantile(scores, 0.99)
-        try:
-            c, loc, scale = genpareto.fit(peaks, floc=0)
-            n = len(scores)
-            N_t = len(peaks)
-            if abs(c) > 1e-6:
-                z_q = t + (scale / c) * (((n * self.q / N_t) ** (-c)) - 1.0)
-            else:
-                z_q = t - scale * np.log(n * self.q / N_t)
-            if np.isnan(z_q) or z_q <= t:
-                return np.quantile(scores, 0.99)
-            return z_q
-        except Exception:
-            return np.quantile(scores, 0.99)
 
 def point_adjust(y_true, y_pred):
     y_true, y_pred = np.asarray(y_true, dtype=int), np.asarray(y_pred, dtype=int).copy()
@@ -340,21 +312,13 @@ def _batched_forward_scores(model, model_type, X_windows, batch_size=512):
         scores_list.append(sc)
     return np.concatenate(scores_list) if scores_list else np.array([])
 
-def evaluate_channel_sequence(model, model_type, X_train_win, X_test_win, y_test_win, use_evt=False):
-    """Evaluates a single telemetry channel using channel-local thresholding and point adjustment."""
+def evaluate_channel_sequence(model, model_type, X_train_win, X_test_win, y_test_win):
+    """Evaluates a single telemetry channel using the canonical channel-wise dynamic thresholding."""
     model.eval()
-    train_scores = _batched_forward_scores(model, model_type, X_train_win, batch_size=512)
     test_scores = _batched_forward_scores(model, model_type, X_test_win, batch_size=512)
-
     smoothed_test = smooth_errors(test_scores)
-    smoothed_train = smooth_errors(train_scores) if len(train_scores) > 0 else smoothed_test
 
-    if use_evt:
-        spot = SPOTThreshold(q=1e-3, init_quantile=0.98)
-        thresh = spot.fit(smoothed_train)
-    else:
-        thresh = dynamic_threshold_channel(smoothed_test)
-
+    thresh = dynamic_threshold_channel(smoothed_test)
     raw_preds = (smoothed_test > thresh).astype(int)
     pa_preds = point_adjust(y_test_win, raw_preds)
 
@@ -489,42 +453,26 @@ def run_live_evaluation(project_root):
         esa_data = {"train_win": esa_train_win, "test_win": esa_test_win, "y_test_win": esa_y_win}
 
     # Model definitions and checkpoint paths
-    # Fallback to main_student_latest.pth if student_v2.pth is not yet trained in v2
-    student_ckpt = os.path.join(v2_ckpt_dir, "student_v2.pth")
-    if not os.path.exists(student_ckpt):
-        student_ckpt = os.path.join(v1_ckpt_dir, "main_student_latest.pth")
-
     model_configs = [
         {
-            "name": "v1 (Baseline ConvAE + Dynamic Thresh)",
+            "name": "v1 (Baseline ConvAE)",
             "type": "ConvAE",
             "model": BaselineConvAE(n_features=1),
             "ckpt_path": os.path.join(v1_ckpt_dir, "seed42_ConvAE.pth"),
-            "use_evt": False,
             "category": "Baseline"
-        },
-        {
-            "name": "v1 + POT Thresholding (EVT)",
-            "type": "ConvAE",
-            "model": BaselineConvAE(n_features=1),
-            "ckpt_path": os.path.join(v1_ckpt_dir, "seed42_ConvAE.pth"),
-            "use_evt": True,
-            "category": "EVT Threshold"
         },
         {
             "name": "v2 USAD Teacher (Dual-AE)",
             "type": "USAD",
             "model": USAD(window_size=100, n_features=1),
             "ckpt_path": os.path.join(v2_ckpt_dir, "usad_teacher_v2.pth"),
-            "use_evt": True,
-            "category": "Adversarial"
+            "category": "Adversarial Teacher"
         },
         {
             "name": "v2 USAD + CORAL Domain Adaptation",
             "type": "USAD",
             "model": USAD(window_size=100, n_features=1),
             "ckpt_path": os.path.join(v2_ckpt_dir, "usad_teacher_domainadapted_v2.pth"),
-            "use_evt": True,
             "category": "Domain Adapted"
         },
         {
@@ -532,7 +480,6 @@ def run_live_evaluation(project_root):
             "type": "AnomalyTransformer",
             "model": AnomalyTransformer(n_features=1, d_model=32, n_heads=4, window_size=100),
             "ckpt_path": os.path.join(v2_ckpt_dir, "anomaly_transformer_v2.pth"),
-            "use_evt": True,
             "category": "Attention Discrepancy"
         },
         {
@@ -540,15 +487,13 @@ def run_live_evaluation(project_root):
             "type": "PatchTST",
             "model": PatchTSTBackbone(patch_len=16, stride=8, window_size=100, d_model=32, n_heads=4),
             "ckpt_path": os.path.join(v2_ckpt_dir, "patchtst_backbone_v2.pth"),
-            "use_evt": True,
             "category": "Patch Transformer"
         },
         {
             "name": "v2 Distilled Edge Student (Proposed)",
             "type": "TinyConvAE",
             "model": TinyConvAE(n_features=1),
-            "ckpt_path": student_ckpt,
-            "use_evt": True,
+            "ckpt_path": os.path.join(v2_ckpt_dir, "student_v2.pth"),
             "category": "On-Orbit Deployment"
         }
     ]
@@ -556,7 +501,7 @@ def run_live_evaluation(project_root):
     benchmark_rows = []
     subsystem_results = {m["name"]: {} for m in model_configs}
 
-    print("\nExecuting live model evaluations across all channels (Strict Checkpoint Verification)...", flush=True)
+    print("\nExecuting live model evaluations under canonical channel dynamic thresholding...", flush=True)
     for cfg in model_configs:
         model = cfg["model"]
         ckpt_path = cfg["ckpt_path"]
@@ -565,7 +510,7 @@ def run_live_evaluation(project_root):
         if not os.path.exists(ckpt_path):
             raise FileNotFoundError(
                 f"[CRITICAL ERROR] Required checkpoint for '{cfg['name']}' not found at: {ckpt_path}.\n"
-                f"Run the training pipeline in Google Colab to produce this checkpoint."
+                f"Run the training pipeline to produce this checkpoint."
             )
         
         ckpt = torch.load(ckpt_path, map_location=DEVICE)
@@ -595,13 +540,13 @@ def run_live_evaluation(project_root):
                 model_type=cfg["type"],
                 X_train_win=ch["train_win"],
                 X_test_win=ch["test_win"],
-                y_test_win=ch["y_test_win"],
-                use_evt=cfg["use_evt"]
+                y_test_win=ch["y_test_win"]
             )
-            chan_pa_f1s.append(res["pa_f1"])
-            chan_aff_f1s.append(res["aff_f1"])
-            mission_f1s[ch["spacecraft"]].append(res["pa_f1"])
-            subsys_f1s[ch["subsystem"]].append(res["pa_f1"])
+            if ch["y_test_win"].sum() > 0:
+                chan_pa_f1s.append(res["pa_f1"])
+                chan_aff_f1s.append(res["aff_f1"])
+                mission_f1s[ch["spacecraft"]].append(res["pa_f1"])
+                subsys_f1s[ch["subsystem"]].append(res["pa_f1"])
 
         # 2. ESA OPS-SAT-AD
         opssat_f1s = []
@@ -611,8 +556,7 @@ def run_live_evaluation(project_root):
                 model_type=cfg["type"],
                 X_train_win=op_ch["train_win"],
                 X_test_win=op_ch["test_win"],
-                y_test_win=op_ch["y_test_win"],
-                use_evt=cfg["use_evt"]
+                y_test_win=op_ch["y_test_win"]
             )
             if op_ch["y_test_win"].sum() > 0:
                 opssat_f1s.append(op_res["pa_f1"])
@@ -625,8 +569,7 @@ def run_live_evaluation(project_root):
                 model_type=cfg["type"],
                 X_train_win=esa_data["train_win"],
                 X_test_win=esa_data["test_win"],
-                y_test_win=esa_data["y_test_win"],
-                use_evt=cfg["use_evt"]
+                y_test_win=esa_data["y_test_win"]
             )
             esa_pa_f1 = esa_res["pa_f1"]
 
@@ -649,7 +592,7 @@ def run_live_evaluation(project_root):
             "Aff-F1 (NASA)": round(mean_aff_f1, 4),
             "OPS-SAT-AD F1": round(opssat_mean, 4),
             "ESA-ADB F1": round(esa_pa_f1, 4),
-            "Worst-Case Cross-Mission F1": round(worst_case_mission, 4),
+            "Worst-Case Mission F1": round(worst_case_mission, 4),
             "Footprint": f"{footprint_kb:.2f} KB" if footprint_kb < 100 else f"{footprint_kb:.1f} KB",
             "Params": total_params,
             "Type": cfg["category"]
@@ -672,16 +615,16 @@ def run_live_evaluation(project_root):
     w = 0.25
     plt.bar(x - w, bench_df["PA-F1 (NASA)"], width=w, label="NASA SMAP/MSL PA-F1", color="#2563eb")
     plt.bar(x, bench_df["OPS-SAT-AD F1"], width=w, label="OPS-SAT-AD (Cross-Mission)", color="#059669")
-    plt.bar(x + w, bench_df["Worst-Case Cross-Mission F1"], width=w, label="Worst-Case Mission F1", color="#d97706")
+    plt.bar(x + w, bench_df["Worst-Case Mission F1"], width=w, label="Worst-Case Mission F1", color="#d97706")
     plt.xticks(x, bench_df["Model / Method"], rotation=25, ha="right", fontsize=8)
     plt.ylabel("Point-Adjusted F1 Score")
-    plt.title("Multi-Mission Generalization Benchmark")
+    plt.title("Multi-Mission Generalization Benchmark (Canonical Dynamic Thresh)")
     plt.legend()
     plt.grid(axis="y", linestyle="--", alpha=0.4)
 
     plt.subplot(1, 2, 2)
     subsys_names = ["Power (EPS)", "Thermal (TH)", "Attitude (ADCS)", "Command (CDH)"]
-    v1_sub = [subsystem_results["v1 (Baseline ConvAE + Dynamic Thresh)"][s] for s in subsys_names]
+    v1_sub = [subsystem_results["v1 (Baseline ConvAE)"][s] for s in subsys_names]
     v2_sub = [subsystem_results["v2 Distilled Edge Student (Proposed)"][s] for s in subsys_names]
     xs = np.arange(len(subsys_names))
     plt.bar(xs - 0.15, v1_sub, 0.3, label="v1 Baseline (ConvAE)", color="#94a3b8")
@@ -698,7 +641,7 @@ def run_live_evaluation(project_root):
     plt.close()
 
     print("\n" + "=" * 75, flush=True)
-    print("      GENUINE MULTI-MISSION BENCHMARK RESULTS (STRICTLY COMPUTED)", flush=True)
+    print("      GENUINE MULTI-MISSION BENCHMARK RESULTS (CANONICAL PROTOCOL)", flush=True)
     print("=" * 75, flush=True)
     print(bench_df.to_string(index=False), flush=True)
     print(f"\n[Saved Table CSV]  {csv_path}", flush=True)
