@@ -1,13 +1,13 @@
-\begin{tabular}{lrrrll}
+\begin{tabular}{lrrrlrl}
 \toprule
-Model / Method & PA-F1 & Affiliation-F1 & Worst-Case Mission F1 & Footprint & Type \\
+Model / Method & PA-F1 & Affiliation-F1 & Worst-Case Mission F1 & Footprint & Params & Type \\
 \midrule
-v1 (Baseline ConvAE + 99th Pct) & 0.824100 & 0.612000 & 0.385000 & 28.2 KB & Baseline \\
-v1 + POT Thresholding (EVT) & 0.851200 & 0.684000 & 0.442000 & 28.2 KB & EVT Threshold \\
-v2 USAD Teacher (Dual-AE) & 0.887000 & 0.741000 & 0.521000 & 118 KB & Adversarial \\
-v2 USAD + CORAL Domain Adaptation & 0.912500 & 0.793000 & 0.648000 & 118 KB & Domain Adapted \\
-v2 Anomaly Transformer (Assoc. Discrepancy) & 0.924000 & 0.811000 & 0.682000 & 64 KB & Attention Discrepancy \\
-v2 PatchTST Multi-Scale Backbone & 0.931000 & 0.825000 & 0.704000 & 82 KB & Patch Transformer \\
-v2 Distilled Edge Student (Proposed) & 0.901500 & 0.781000 & 0.635000 & 1.64 KB & On-Orbit Deployment \\
+v1 (Baseline ConvAE + 99th Pct) & 0.038900 & 0.052600 & 0.000000 & 5.79 KB & 1481 & Baseline \\
+v1 + POT Thresholding (EVT) & 0.038900 & 0.052600 & 0.000000 & 5.79 KB & 1481 & EVT Threshold \\
+v2 USAD Teacher (Dual-AE) & 0.041100 & 0.067900 & 0.000000 & 108.5 KB & 27772 & Adversarial \\
+v2 USAD + CORAL Domain Adaptation & 0.041700 & 0.065900 & 0.000000 & 108.5 KB & 27772 & Domain Adapted \\
+v2 Anomaly Transformer (Assoc. Discrepancy) & 0.035300 & 0.054500 & 0.000000 & 34.27 KB & 8773 & Attention Discrepancy \\
+v2 PatchTST Multi-Scale Backbone & 0.053100 & 0.074200 & 0.000000 & 208.1 KB & 53284 & Patch Transformer \\
+v2 Distilled Edge Student (Proposed) & 0.041000 & 0.052300 & 0.000000 & 1.47 KB & 377 & On-Orbit Deployment \\
 \bottomrule
 \end{tabular}
