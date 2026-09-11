@@ -287,7 +287,6 @@ def compute_affiliation_metrics(labels, predictions):
     return {"aff_precision": float(prec), "aff_recall": float(rec), "aff_f1": float(f1)}
 
 def _batched_forward_scores(model, model_type, X_windows, batch_size=512):
-    """Fast batched inference."""
     scores_list = []
     n = len(X_windows)
     for i in range(0, n, batch_size):
@@ -338,7 +337,7 @@ def evaluate_model_on_windows(model, model_type, X_train_windows, X_test_windows
 
 def run_live_evaluation(project_root):
     print("=" * 70, flush=True)
-    print("      RUNNING LIVE END-TO-END GENERALIZATION EVALUATION (NO MOCKS)", flush=True)
+    print("      RUNNING LIVE GENERALIZATION EVALUATION ACROSS ALL DATASETS", flush=True)
     print("=" * 70, flush=True)
 
     data_dir = os.path.join(project_root, "data")
@@ -349,6 +348,7 @@ def run_live_evaluation(project_root):
     os.makedirs(v2_tables_dir, exist_ok=True)
     os.makedirs(v2_fig_dir, exist_ok=True)
 
+    # 1. Load NASA SMAP/MSL
     labels_file = os.path.join(data_dir, "labeled_anomalies.csv")
     labels_df = pd.read_csv(labels_file)
 
@@ -360,7 +360,7 @@ def run_live_evaluation(project_root):
         return "Command (CDH)"
 
     channels_data = []
-    print(f"Loading {len(labels_df)} NASA SMAP/MSL telemetry channels...", flush=True)
+    print(f"[Dataset 1/3] Loading {len(labels_df)} NASA SMAP/MSL telemetry channels...", flush=True)
     for _, row in labels_df.iterrows():
         chan = row["chan_id"]
         train_path = os.path.join(data_dir, "train", f"{chan}.npy")
@@ -393,11 +393,40 @@ def run_live_evaluation(project_root):
             "y_true": y_true
         })
 
-    # ESA-ADB Unseen Mission Data
+    # 2. Load ESA OPS-SAT-AD Dataset (Real On-Orbit Telemetry)
+    opssat_seg = os.path.join(project_root, "opssat_data", "segments.csv")
+    opssat_channels = []
+    if os.path.exists(opssat_seg):
+        df_ops = pd.read_csv(opssat_seg)
+        print(f"[Dataset 2/3] Loading ESA OPS-SAT-AD Dataset ({len(df_ops)} records across {df_ops['channel'].nunique()} channels)...", flush=True)
+        for chan, group in df_ops.groupby("channel"):
+            train_df = group[group["train"] == 1]
+            test_df = group[group["train"] == 0]
+            if len(train_df) < 100 or len(test_df) < 100:
+                continue
+            
+            t_raw = train_df["value"].values.reshape(-1, 1)
+            te_raw = test_df["value"].values.reshape(-1, 1)
+            m, s = t_raw.mean(), t_raw.std() + 1e-8
+            t_norm = (t_raw - m) / s
+            te_norm = (te_raw - m) / s
+
+            t_win = [t_norm[i:i+100] for i in range(0, len(t_norm)-100+1, 10)]
+            te_win = [te_norm[i:i+100] for i in range(0, len(te_norm)-100+1, 2)]
+            y_true = test_df["anomaly"].values
+
+            opssat_channels.append({
+                "channel": chan,
+                "train_windows": np.stack(t_win),
+                "test_windows": np.stack(te_win),
+                "y_true": y_true
+            })
+
+    # 3. Load ESA-ADB Telemetry
     esa_path = os.path.join(project_root, "esa_adb_data", "esa_adb_mission_telemetry.csv")
     esa_data = None
     if os.path.exists(esa_path):
-        print("Loading ESA-ADB Target Mission Telemetry...", flush=True)
+        print(f"[Dataset 3/3] Loading ESA-ADB Mission Telemetry...", flush=True)
         df_esa = pd.read_csv(esa_path)
         esa_telemetry = df_esa["power_telemetry"].values.reshape(-1, 1)
         mean, std = esa_telemetry[:5000].mean(), esa_telemetry[:5000].std() + 1e-8
@@ -493,6 +522,7 @@ def run_live_evaluation(project_root):
         mission_f1s = {"SMAP": [], "MSL": []}
         subsys_f1s = {"Power (EPS)": [], "Thermal (TH)": [], "Attitude (ADCS)": [], "Command (CDH)": []}
 
+        # 1. NASA SMAP/MSL
         for ch in channels_data:
             res = evaluate_model_on_windows(
                 model=model,
@@ -507,6 +537,21 @@ def run_live_evaluation(project_root):
             mission_f1s[ch["spacecraft"]].append(res["aff_f1"])
             subsys_f1s[ch["subsystem"]].append(res["aff_f1"])
 
+        # 2. ESA OPS-SAT-AD
+        opssat_f1s = []
+        for op_ch in opssat_channels:
+            op_res = evaluate_model_on_windows(
+                model=model,
+                model_type=cfg["type"],
+                X_train_windows=op_ch["train_windows"],
+                X_test_windows=op_ch["test_windows"],
+                y_test_labels=op_ch["y_true"],
+                use_evt=cfg["use_evt"]
+            )
+            if op_ch["y_true"].sum() > 0: # only channels with ground truth anomalies
+                opssat_f1s.append(op_res["aff_f1"])
+
+        # 3. ESA-ADB
         esa_aff_f1 = 0.0
         if esa_data is not None:
             esa_res = evaluate_model_on_windows(
@@ -523,17 +568,22 @@ def run_live_evaluation(project_root):
         mean_aff_f1 = float(np.mean(chan_aff_f1s)) if chan_aff_f1s else 0.0
         smap_mean = float(np.mean(mission_f1s["SMAP"])) if mission_f1s["SMAP"] else 0.0
         msl_mean = float(np.mean(mission_f1s["MSL"])) if mission_f1s["MSL"] else 0.0
+        opssat_mean = float(np.mean(opssat_f1s)) if opssat_f1s else 0.0
         
         all_mission_means = [smap_mean, msl_mean]
+        if opssat_f1s:
+            all_mission_means.append(opssat_mean)
         if esa_data is not None:
             all_mission_means.append(esa_aff_f1)
         worst_case_mission = float(min(all_mission_means))
 
         benchmark_rows.append({
             "Model / Method": cfg["name"],
-            "PA-F1": round(mean_pa_f1, 4),
-            "Affiliation-F1": round(mean_aff_f1, 4),
-            "Worst-Case Mission F1": round(worst_case_mission, 4),
+            "PA-F1 (NASA)": round(mean_pa_f1, 4),
+            "Aff-F1 (NASA)": round(mean_aff_f1, 4),
+            "OPS-SAT-AD F1": round(opssat_mean, 4),
+            "ESA-ADB F1": round(esa_aff_f1, 4),
+            "Worst-Case Cross-Mission F1": round(worst_case_mission, 4),
             "Footprint": f"{footprint_kb:.2f} KB" if footprint_kb < 100 else f"{footprint_kb:.1f} KB",
             "Params": total_params,
             "Type": cfg["category"]
@@ -554,12 +604,12 @@ def run_live_evaluation(project_root):
     plt.subplot(1, 2, 1)
     x = np.arange(len(bench_df))
     w = 0.25
-    plt.bar(x - w, bench_df["PA-F1"], width=w, label="Point-Adjusted F1", color="#2563eb")
-    plt.bar(x, bench_df["Affiliation-F1"], width=w, label="Affiliation F1 (Honest)", color="#059669")
-    plt.bar(x + w, bench_df["Worst-Case Mission F1"], width=w, label="Worst-Case Cross-Mission F1", color="#d97706")
+    plt.bar(x - w, bench_df["Aff-F1 (NASA)"], width=w, label="NASA SMAP/MSL F1", color="#2563eb")
+    plt.bar(x, bench_df["OPS-SAT-AD F1"], width=w, label="OPS-SAT-AD (Cross-Mission)", color="#059669")
+    plt.bar(x + w, bench_df["Worst-Case Cross-Mission F1"], width=w, label="Worst-Case Mission F1", color="#d97706")
     plt.xticks(x, bench_df["Model / Method"], rotation=25, ha="right", fontsize=8)
-    plt.ylabel("F1 Score")
-    plt.title("Real Evaluation: In-Domain vs Cross-Mission Generalization")
+    plt.ylabel("Affiliation F1 Score")
+    plt.title("Multi-Mission Generalization Benchmark")
     plt.legend()
     plt.grid(axis="y", linestyle="--", alpha=0.4)
 
@@ -572,7 +622,7 @@ def run_live_evaluation(project_root):
     plt.bar(xs + 0.15, v2_sub, 0.3, label="v2 Distilled Edge Student", color="#3b82f6")
     plt.xticks(xs, subsys_names)
     plt.ylabel("Affiliation F1")
-    plt.title("Live Subsystem Robustness")
+    plt.title("Subsystem Robustness (NASA SMAP/MSL)")
     plt.legend()
     plt.grid(axis="y", linestyle="--", alpha=0.4)
 
@@ -582,7 +632,7 @@ def run_live_evaluation(project_root):
     plt.close()
 
     print("\n" + "=" * 70, flush=True)
-    print("      GENUINE SOTA BENCHMARK RESULTS (LIVE COMPUTED)", flush=True)
+    print("      GENUINE MULTI-MISSION BENCHMARK RESULTS (LIVE COMPUTED)", flush=True)
     print("=" * 70, flush=True)
     print(bench_df.to_string(index=False), flush=True)
     print(f"\n[Saved Table CSV]  {csv_path}", flush=True)
