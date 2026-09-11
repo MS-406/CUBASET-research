@@ -322,12 +322,19 @@ def evaluate_channel_sequence(model, model_type, X_train_win, X_test_win, y_test
     raw_preds = (smoothed_test > thresh).astype(int)
     pa_preds = point_adjust(y_test_win, raw_preds)
 
+    raw_p = precision_score(y_test_win, raw_preds, zero_division=0)
+    raw_r = recall_score(y_test_win, raw_preds, zero_division=0)
+    raw_f1 = f1_score(y_test_win, raw_preds, zero_division=0)
+
     pa_p = precision_score(y_test_win, pa_preds, zero_division=0)
     pa_r = recall_score(y_test_win, pa_preds, zero_division=0)
     pa_f1 = f1_score(y_test_win, pa_preds, zero_division=0)
     aff_m = compute_affiliation_metrics(y_test_win, raw_preds)
 
     return {
+        "raw_precision": float(raw_p),
+        "raw_recall": float(raw_r),
+        "raw_f1": float(raw_f1),
         "precision": float(pa_p),
         "recall": float(pa_r),
         "pa_f1": float(pa_f1),
@@ -528,9 +535,11 @@ def run_live_evaluation(project_root):
         total_params = sum(p.numel() for p in model.parameters())
         footprint_kb = (total_params * 4) / 1024.0
 
-        chan_pa_f1s = []
+        chan_raw_f1s = []
         chan_aff_f1s = []
-        mission_f1s = {"SMAP": [], "MSL": []}
+        chan_pa_f1s = []
+        mission_raw_f1s = {"SMAP": [], "MSL": []}
+        mission_pa_f1s = {"SMAP": [], "MSL": []}
         subsys_f1s = {"Power (EPS)": [], "Thermal (TH)": [], "Attitude (ADCS)": [], "Command (CDH)": []}
 
         # 1. NASA SMAP/MSL
@@ -543,13 +552,17 @@ def run_live_evaluation(project_root):
                 y_test_win=ch["y_test_win"]
             )
             if ch["y_test_win"].sum() > 0:
-                chan_pa_f1s.append(res["pa_f1"])
+                chan_raw_f1s.append(res["raw_f1"])
                 chan_aff_f1s.append(res["aff_f1"])
-                mission_f1s[ch["spacecraft"]].append(res["pa_f1"])
+                chan_pa_f1s.append(res["pa_f1"])
+                mission_raw_f1s[ch["spacecraft"]].append(res["raw_f1"])
+                mission_pa_f1s[ch["spacecraft"]].append(res["pa_f1"])
                 subsys_f1s[ch["subsystem"]].append(res["pa_f1"])
 
         # 2. ESA OPS-SAT-AD
-        opssat_f1s = []
+        opssat_raw_f1s = []
+        opssat_aff_f1s = []
+        opssat_pa_f1s = []
         for op_ch in opssat_channels:
             op_res = evaluate_channel_sequence(
                 model=model,
@@ -559,9 +572,13 @@ def run_live_evaluation(project_root):
                 y_test_win=op_ch["y_test_win"]
             )
             if op_ch["y_test_win"].sum() > 0:
-                opssat_f1s.append(op_res["pa_f1"])
+                opssat_raw_f1s.append(op_res["raw_f1"])
+                opssat_aff_f1s.append(op_res["aff_f1"])
+                opssat_pa_f1s.append(op_res["pa_f1"])
 
         # 3. ESA-ADB
+        esa_raw_f1 = 0.0
+        esa_aff_f1 = 0.0
         esa_pa_f1 = 0.0
         if esa_data is not None:
             esa_res = evaluate_channel_sequence(
@@ -571,28 +588,46 @@ def run_live_evaluation(project_root):
                 X_test_win=esa_data["test_win"],
                 y_test_win=esa_data["y_test_win"]
             )
+            esa_raw_f1 = esa_res["raw_f1"]
+            esa_aff_f1 = esa_res["aff_f1"]
             esa_pa_f1 = esa_res["pa_f1"]
 
-        mean_pa_f1 = float(np.mean(chan_pa_f1s)) if chan_pa_f1s else 0.0
+        mean_raw_f1 = float(np.mean(chan_raw_f1s)) if chan_raw_f1s else 0.0
         mean_aff_f1 = float(np.mean(chan_aff_f1s)) if chan_aff_f1s else 0.0
-        smap_mean = float(np.mean(mission_f1s["SMAP"])) if mission_f1s["SMAP"] else 0.0
-        msl_mean = float(np.mean(mission_f1s["MSL"])) if mission_f1s["MSL"] else 0.0
-        opssat_mean = float(np.mean(opssat_f1s)) if opssat_f1s else 0.0
+        mean_pa_f1 = float(np.mean(chan_pa_f1s)) if chan_pa_f1s else 0.0
+
+        smap_pa = float(np.mean(mission_pa_f1s["SMAP"])) if mission_pa_f1s["SMAP"] else 0.0
+        msl_pa = float(np.mean(mission_pa_f1s["MSL"])) if mission_pa_f1s["MSL"] else 0.0
+        opssat_raw_mean = float(np.mean(opssat_raw_f1s)) if opssat_raw_f1s else 0.0
+        opssat_aff_mean = float(np.mean(opssat_aff_f1s)) if opssat_aff_f1s else 0.0
+        opssat_pa_mean = float(np.mean(opssat_pa_f1s)) if opssat_pa_f1s else 0.0
         
-        all_mission_means = [smap_mean, msl_mean]
-        if opssat_f1s:
-            all_mission_means.append(opssat_mean)
-        if esa_data is not None:
-            all_mission_means.append(esa_pa_f1)
-        worst_case_mission = float(min(all_mission_means))
+        # Real on-orbit mission worst case (NASA SMAP, NASA MSL, ESA OPS-SAT-AD)
+        real_mission_means_pa = [smap_pa, msl_pa]
+        if opssat_pa_f1s:
+            real_mission_means_pa.append(opssat_pa_mean)
+        worst_case_real_pa = float(min(real_mission_means_pa))
+
+        real_mission_means_raw = [
+            float(np.mean(mission_raw_f1s["SMAP"])) if mission_raw_f1s["SMAP"] else 0.0,
+            float(np.mean(mission_raw_f1s["MSL"])) if mission_raw_f1s["MSL"] else 0.0,
+        ]
+        if opssat_raw_f1s:
+            real_mission_means_raw.append(opssat_raw_mean)
+        worst_case_real_raw = float(min(real_mission_means_raw))
 
         benchmark_rows.append({
             "Model / Method": cfg["name"],
-            "PA-F1 (NASA)": round(mean_pa_f1, 4),
-            "Aff-F1 (NASA)": round(mean_aff_f1, 4),
-            "OPS-SAT-AD F1": round(opssat_mean, 4),
-            "ESA-ADB F1": round(esa_pa_f1, 4),
-            "Worst-Case Mission F1": round(worst_case_mission, 4),
+            "NASA Raw-F1": round(mean_raw_f1, 4),
+            "NASA Aff-F1": round(mean_aff_f1, 4),
+            "NASA PA-F1": round(mean_pa_f1, 4),
+            "OPS-SAT Raw-F1": round(opssat_raw_mean, 4),
+            "OPS-SAT Aff-F1": round(opssat_aff_mean, 4),
+            "OPS-SAT PA-F1": round(opssat_pa_mean, 4),
+            "Worst-Case Real Raw-F1": round(worst_case_real_raw, 4),
+            "Worst-Case Real PA-F1": round(worst_case_real_pa, 4),
+            "ESA-ADB (Synthetic Slice) Raw-F1": round(esa_raw_f1, 4),
+            "ESA-ADB (Synthetic Slice) PA-F1": round(esa_pa_f1, 4),
             "Footprint": f"{footprint_kb:.2f} KB" if footprint_kb < 100 else f"{footprint_kb:.1f} KB",
             "Params": total_params,
             "Type": cfg["category"]
@@ -613,12 +648,12 @@ def run_live_evaluation(project_root):
     plt.subplot(1, 2, 1)
     x = np.arange(len(bench_df))
     w = 0.25
-    plt.bar(x - w, bench_df["PA-F1 (NASA)"], width=w, label="NASA SMAP/MSL PA-F1", color="#2563eb")
-    plt.bar(x, bench_df["OPS-SAT-AD F1"], width=w, label="OPS-SAT-AD (Cross-Mission)", color="#059669")
-    plt.bar(x + w, bench_df["Worst-Case Mission F1"], width=w, label="Worst-Case Mission F1", color="#d97706")
+    plt.bar(x - w, bench_df["NASA PA-F1"], width=w, label="NASA SMAP/MSL PA-F1", color="#2563eb")
+    plt.bar(x, bench_df["OPS-SAT PA-F1"], width=w, label="OPS-SAT-AD (Cross-Mission)", color="#059669")
+    plt.bar(x + w, bench_df["Worst-Case Real PA-F1"], width=w, label="Worst-Case Real PA-F1", color="#d97706")
     plt.xticks(x, bench_df["Model / Method"], rotation=25, ha="right", fontsize=8)
     plt.ylabel("Point-Adjusted F1 Score")
-    plt.title("Multi-Mission Generalization Benchmark (Canonical Dynamic Thresh)")
+    plt.title("Multi-Mission Generalization Benchmark (Real On-Orbit Data)")
     plt.legend()
     plt.grid(axis="y", linestyle="--", alpha=0.4)
 

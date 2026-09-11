@@ -1,0 +1,13 @@
+Model / Method,Dataset,Domain,Streams Evaluated,Total Windows,Raw-F1,Affiliation-F1,Point-Adjusted F1,Params,Footprint
+v1 (Baseline ConvAE),SMD,Non-Aerospace External (Out-of-Domain),140,352880,0.1227,0.2023,0.2533,1481,5.79 KB
+v1 (Baseline ConvAE),NAB,Non-Aerospace External (Out-of-Domain),58,36019,0.08,0.4167,0.4361,1481,5.79 KB
+v2 USAD Teacher (Dual-AE),SMD,Non-Aerospace External (Out-of-Domain),140,352880,0.1104,0.1975,0.2456,27772,108.5 KB
+v2 USAD Teacher (Dual-AE),NAB,Non-Aerospace External (Out-of-Domain),58,36019,0.0858,0.4176,0.4545,27772,108.5 KB
+v2 USAD + CORAL Domain Adaptation,SMD,Non-Aerospace External (Out-of-Domain),140,352880,0.1109,0.1964,0.2449,27772,108.5 KB
+v2 USAD + CORAL Domain Adaptation,NAB,Non-Aerospace External (Out-of-Domain),58,36019,0.089,0.4231,0.4601,27772,108.5 KB
+v2 Anomaly Transformer,SMD,Non-Aerospace External (Out-of-Domain),140,352880,0.1421,0.217,0.2662,8773,34.3 KB
+v2 Anomaly Transformer,NAB,Non-Aerospace External (Out-of-Domain),58,36019,0.0784,0.4368,0.4755,8773,34.3 KB
+v2 PatchTST Multi-Scale Backbone,SMD,Non-Aerospace External (Out-of-Domain),140,352880,0.1494,0.2363,0.292,53284,208.1 KB
+v2 PatchTST Multi-Scale Backbone,NAB,Non-Aerospace External (Out-of-Domain),58,36019,0.0543,0.425,0.4404,53284,208.1 KB
+v2 Distilled Edge Student (Proposed),SMD,Non-Aerospace External (Out-of-Domain),140,352880,0.1246,0.2047,0.2548,421,1.64 KB
+v2 Distilled Edge Student (Proposed),NAB,Non-Aerospace External (Out-of-Domain),58,36019,0.0858,0.4397,0.4733,421,1.64 KB
