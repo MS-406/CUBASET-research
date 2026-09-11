@@ -1,0 +1,7 @@
+Model / Architecture,Params,Footprint,NASA Raw-F1,NASA Aff-F1,OPS-SAT Raw-F1,SMD Raw-F1,NAB Raw-F1,NAB Aff-F1,Type / Role
+v1 (Baseline ConvAE),1481,5.79 KB,0.1608,0.5885,0.0759,0.087,0.08,0.4167,Baseline
+v2 USAD Teacher (Dual-AE),27772,108.5 KB,0.1714,0.5819,0.0821,0.0825,0.0858,0.4176,Adversarial Teacher
+v2 USAD + CORAL Domain Adaptation,27772,108.5 KB,0.1704,0.586,0.0736,0.0829,0.089,0.4231,Domain Adapted
+v2 Anomaly Transformer (Assoc. Discrepancy),8773,34.27 KB,0.1477,0.572,0.0914,0.1022,0.0784,0.4368,Attention Discrepancy
+v2 PatchTST Multi-Scale Backbone,53284,208.1 KB,0.1523,0.572,0.0682,0.1058,0.0543,0.425,Patch Transformer
+v2 Distilled Edge Student (Proposed),421,1.64 KB,0.1656,0.6086,0.0705,0.088,0.0858,0.4397,On-Orbit Deployment

@@ -1,0 +1,15 @@
+\begin{table}
+\caption{Consolidated cross-domain anomaly detection benchmark summarizing aerospace in-domain (NASA SMAP/MSL), aerospace cross-mission (ESA OPS-SAT-AD), and out-of-domain industrial transfer (SMD and NAB) under the un-gamed Raw-F1 protocol.}
+\begin{tabular}{lrlrrrrrrl}
+\toprule
+Model / Architecture & Params & Footprint & NASA Raw-F1 & NASA Aff-F1 & OPS-SAT Raw-F1 & SMD Raw-F1 & NAB Raw-F1 & NAB Aff-F1 & Type / Role \\
+\midrule
+v1 (Baseline ConvAE) & 1481 & 5.79 KB & 0.160800 & 0.588500 & 0.075900 & 0.087000 & 0.080000 & 0.416700 & Baseline \\
+v2 USAD Teacher (Dual-AE) & 27772 & 108.5 KB & 0.171400 & 0.581900 & 0.082100 & 0.082500 & 0.085800 & 0.417600 & Adversarial Teacher \\
+v2 USAD + CORAL Domain Adaptation & 27772 & 108.5 KB & 0.170400 & 0.586000 & 0.073600 & 0.082900 & 0.089000 & 0.423100 & Domain Adapted \\
+v2 Anomaly Transformer (Assoc. Discrepancy) & 8773 & 34.27 KB & 0.147700 & 0.572000 & 0.091400 & 0.102200 & 0.078400 & 0.436800 & Attention Discrepancy \\
+v2 PatchTST Multi-Scale Backbone & 53284 & 208.1 KB & 0.152300 & 0.572000 & 0.068200 & 0.105800 & 0.054300 & 0.425000 & Patch Transformer \\
+v2 Distilled Edge Student (Proposed) & 421 & 1.64 KB & 0.165600 & 0.608600 & 0.070500 & 0.088000 & 0.085800 & 0.439700 & On-Orbit Deployment \\
+\bottomrule
+\end{tabular}
+\end{table}
