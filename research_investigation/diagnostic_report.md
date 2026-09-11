@@ -46,7 +46,7 @@ Evaluated across ground-truth normal vs. anomalous telemetry windows:
 
 ```
                                 Score Formulation  ROC-AUC  PR-AUC  Normal Mean  Anomaly Mean  Separation (Delta_mu/sigma)
-             1. Raw Reconstruction MSE (Baseline)   0.5324  0.3214      -0.1229        0.6995                       0.8224
+             1. Raw Reconstruction MSE (Baseline)   0.5324  0.3213      -0.1229        0.6995                       0.8224
                        2. Temporal First-Diff MSE   0.3925  0.1162       0.0557       -0.3167                      -0.3723
                               3. Latent Magnitude   0.5020  0.3149      -0.1190        0.6770                       0.7960
                             4. Teacher USAD Score   0.5198  0.3192      -0.1229        0.6995                       0.8224
