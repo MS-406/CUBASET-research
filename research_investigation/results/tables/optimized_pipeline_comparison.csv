@@ -1,0 +1,5 @@
+Model Pipeline,Parameters,Footprint,Precision,Recall,Raw-F1,Affiliation-F1,Point-Adjusted F1
+"TinyConvAE (421p, W=100, mu+3sigma)",421,1.64 KB,0.3746,0.4983,0.325,0.626,0.4386
+"TinyConvAE (421p, W=64, tau* Calibrated)",421,1.64 KB,0.4132,0.4937,0.3405,0.6404,0.4716
+"MultiScaleStudent-911p (911p, W=100, tau* Calibrated)",911,3.56 KB,0.3904,0.5289,0.3455,0.6464,0.4564
+"MultiScaleStudent-911p (911p, W=64, tau* Calibrated)",911,3.56 KB,0.406,0.5032,0.339,0.6383,0.456

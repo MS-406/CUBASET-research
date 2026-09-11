@@ -1,0 +1,13 @@
+\begin{table}
+\caption{Optimized Pipeline Comparison: Impact of Multi-Scale Kernels, Window Length, and Validation Calibration.}
+\begin{tabular}{lrlrrrrr}
+\toprule
+Model Pipeline & Parameters & Footprint & Precision & Recall & Raw-F1 & Affiliation-F1 & Point-Adjusted F1 \\
+\midrule
+TinyConvAE (421p, W=100, mu+3sigma) & 421 & 1.64 KB & 0.374600 & 0.498300 & 0.325000 & 0.626000 & 0.438600 \\
+TinyConvAE (421p, W=64, tau* Calibrated) & 421 & 1.64 KB & 0.413200 & 0.493700 & 0.340500 & 0.640400 & 0.471600 \\
+MultiScaleStudent-911p (911p, W=100, tau* Calibrated) & 911 & 3.56 KB & 0.390400 & 0.528900 & 0.345500 & 0.646400 & 0.456400 \\
+MultiScaleStudent-911p (911p, W=64, tau* Calibrated) & 911 & 3.56 KB & 0.406000 & 0.503200 & 0.339000 & 0.638300 & 0.456000 \\
+\bottomrule
+\end{tabular}
+\end{table}

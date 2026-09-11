@@ -1,0 +1,16 @@
+\begin{table}
+\caption{Step-by-Step Controlled Research Ablation Results on NASA SMAP/MSL Benchmark.}
+\begin{tabular}{lrlrrrrr}
+\toprule
+Ablation Step / Configuration & Params & Model Footprint & Precision & Recall & Raw-F1 & Affiliation-F1 & Point-Adjusted F1 \\
+\midrule
+1. Existing Baseline (TinyConvAE + mu+3sigma Heuristic) & 421 & 1.64 KB & 0.372100 & 0.508600 & 0.335300 & 0.613500 & 0.426600 \\
+2. + Window & Granularity Fix (W=64, Stride=5) & 421 & 1.64 KB & 0.390900 & 0.481900 & 0.327400 & 0.621800 & 0.440500 \\
+3. + Frozen Validation Threshold Calibration (tau*) & 421 & 1.64 KB & 0.408600 & 0.498500 & 0.335500 & 0.626600 & 0.459300 \\
+4. + Composite Temporal Scoring (Recon + First-Diff) & 421 & 1.64 KB & 0.185200 & 0.126600 & 0.098000 & 0.253300 & 0.237800 \\
+5. + Anomaly-Aware Ranking Objective & 421 & 1.64 KB & 0.161700 & 0.117000 & 0.096100 & 0.210100 & 0.202900 \\
+6. + Multi-Level Teacher Distillation & 421 & 1.64 KB & 0.146000 & 0.120400 & 0.083700 & 0.222200 & 0.168900 \\
+7. Final SOTA MultiScaleStudent-911p (Parallel k=3,7,15) & 911 & 3.56 KB & 0.141600 & 0.119500 & 0.089300 & 0.202500 & 0.151600 \\
+\bottomrule
+\end{tabular}
+\end{table}
