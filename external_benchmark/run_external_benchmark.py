@@ -321,10 +321,10 @@ def main():
             mean_aff_f1 = float(np.mean(ent_aff_f1s)) if ent_aff_f1s else 0.0
             mean_pa_f1 = float(np.mean(ent_pa_f1s)) if ent_pa_f1s else 0.0
 
-            n_machines = len(set(e.get("machine_id", e["entity_id"]) for e in entities))
+            ds_label = "SMD (Univariate Per-Feature)" if dataset_name == "SMD" else "NAB (Streaming Metrics)"
             rows.append({
                 "Model / Method": model_name,
-                "Dataset": dataset_name,
+                "Dataset Protocol": ds_label,
                 "Entities / Machines": f"{n_machines} Machines" if dataset_name == "SMD" else f"{len(entities)} Series",
                 "Channels / Streams": f"{len(entities)} Channels (38/machine)" if dataset_name == "SMD" else f"{len(entities)} Streams",
                 "Total Windows": sum(len(e["X_windows"]) for e in entities),
@@ -340,7 +340,7 @@ def main():
     out_df.to_csv(out_path, index=False)
     
     tex_path = os.path.join(RESULTS_DIR, "external_generalization_benchmark.tex")
-    out_df.to_latex(tex_path, index=False)
+    out_df.to_latex(tex_path, index=False, caption="Out-of-domain external generalization benchmark. Note: SMD is evaluated under a univariate per-feature protocol (28 independent machines, 38 channels each) and is non-comparable to published joint-multivariate SMD results.")
 
     print("\n" + "=" * 80)
     print("      EXTERNAL OUT-OF-DOMAIN GENERALIZATION BENCHMARK RESULTS")
