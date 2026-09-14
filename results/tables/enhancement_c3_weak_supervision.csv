@@ -1,0 +1,3 @@
+Supervision Regime,Strict Raw-F1,Affiliation-F1,PR-AUC
+Pure Self-Supervised (Reconstruction MSE),0.3163,0.4639,0.5546
+Weakly-Supervised Fine-Tuned (Class-Weighted),0.3233,0.6728,0.5727

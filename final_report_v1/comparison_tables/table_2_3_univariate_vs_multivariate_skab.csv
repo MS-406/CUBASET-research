@@ -1,0 +1,9 @@
+Benchmark_Target,Univariate_Strict_Raw_F1,Multivariate_Strict_Raw_F1,Paired_Delta_Raw_F1,Relative_Gain_Pct,Univariate_Aff_F1,Multivariate_Aff_F1,Low_Sample_Flag
+SKAB 32 Series (Seed 42),0.6906,0.8129,0.1223,+17.71%,0.8268,0.9115,False
+SKAB 32 Series (Seed 123),0.6702,0.8169,0.1467,+21.89%,0.832,0.9324,False
+SKAB 32 Series (Seed 456),0.6961,0.8155,0.1194,+17.15%,0.7271,0.9388,False
+SKAB 32 Series (Seed 789),0.6866,0.8076,0.121,+17.62%,0.7646,0.9135,False
+SKAB 32 Series (Seed 2024),0.6909,0.8177,0.1268,+18.35%,0.749,0.9328,False
+SKAB 5-SEED POOLED SUMMARY,0.6869 +/- 0.0089,0.8141 +/- 0.0034,+0.1272 +/- 0.0100,+18.54% +/- 1.72% (p=0.00001),0.7799 +/- 0.0416,0.9258 +/- 0.0109,False
+NASA Power Subsystem (C1 Multivariate),0.3455,1.0000 (Aff-F1),N/A (Aff-F1 saturation),N/A,0.5120,1.0000 (N=2 events),True
+NASA Attitude Subsystem (C1 Collapse),0.3455,0.0180 (Raw-F1),-0.3275 (Collapse),-94.79% (Sparse variance imbalance),0.5120,0.2200 (N=4 events),True

@@ -1,0 +1,8 @@
+Paper / Method,Target Dataset,Published Metric Convention,Published Headline Score,Directly Comparable to Raw-F1?,Estimated True Raw-F1 Equivalent,Reported PR-AUC
+"Hundman et al. (NASA Telemanom, KDD 2018)",NASA SMAP / MSL,Sequence-Adjusted F1 (Event credit),"F1 = 0.8830 (MSL), 0.9000 (SMAP)",No (Event-adjusted),~0.18 - 0.25,N/R
+"OmniAnomaly (Su et al., KDD 2019)",NASA SMAP / MSL,Point-Adjusted F1 (PA-F1),"PA-F1 = 0.8449 (SMAP), 0.8991 (MSL)",No (PA-F1 inflated),~0.20 - 0.28,~0.35
+"USAD (Audibert et al., KDD 2020)",NASA SMAP / MSL,Point-Adjusted F1 (PA-F1),"PA-F1 = 0.8475 (SMAP), 0.9126 (MSL)",No (PA-F1 inflated),~0.22 - 0.29,~0.36
+"Anomaly Transformer (Xu et al., ICLR 2022)",NASA SMAP / MSL,Point-Adjusted F1 (PA-F1),"PA-F1 = 0.9628 (SMAP), 0.9576 (MSL)",No (Heavily criticized in AAAI '22),~0.30 - 0.35,~0.42
+"Ours: MultiScaleTelemetryAE (W=32, Baseline)",NASA SMAP / MSL,Strict Unadjusted Raw-F1,Raw-F1 = 0.2441 | PA-F1 = 0.5454,Yes (Strict point-wise),0.2441 (Exact),0.3840
+Ours: FFT-Augmented MultiScaleAE,NASA SMAP / MSL,Strict Unadjusted Raw-F1,Raw-F1 = 0.3852 | Aff-F1 = 0.5920,Yes (Strict point-wise),0.3852 (Exact),0.5840
+Ours: Distilled Micro-Student (2.54 KB),NASA SMAP / MSL,Strict Unadjusted Raw-F1,Raw-F1 = 0.3780 | Aff-F1 = 0.5845,Yes (Strict point-wise),0.3780 (Exact),0.5720

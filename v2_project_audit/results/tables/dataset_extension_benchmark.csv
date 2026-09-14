@@ -1,0 +1,3 @@
+Dataset,Domain,Channels_Evaluated,Mean_Strict_Raw_F1,Mean_Affiliation_F1,Mean_Point_Adjusted_F1,Mean_PR_AUC,Data_Provenance_Note
+ESA OPS-SAT-AD (3U CubeSat In-Orbit Telemetry),European Space Agency 3U CubeSat,9,0.0665,0.3241,0.1799,0.26,Zenodo DOI 10.5281/zenodo.12588359 (Verified real in-orbit telemetry)
+ESA-ADB (Curated Multi-Channel Telemetry Sample),European Space Agency Satellite Archive (Sample),2,0.8621,0.6667,0.8621,0.7969,Local 20k-row curated mission slice (Full 700M Zenodo dataset requires full download)

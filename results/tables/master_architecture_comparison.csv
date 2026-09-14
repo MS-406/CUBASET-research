@@ -1,0 +1,5 @@
+Architecture / Paradigm,Parameters,FP32 Footprint,PR-AUC,Raw-F1,Affiliation-F1,Point-Adjusted F1
+"MultiScale-TelemetryAE (k=3,7,11,15)",8461,33.05 KB,0.3645,0.2139,0.4275,0.2917
+Predictive-TCN (Dilated Causal 3-Layer),5353,20.91 KB,0.283,0.1253,0.3543,0.2235
+TinyGRU-Model (Bidirectional Recurrent),5681,22.19 KB,0.4464,0.2442,0.4648,0.3093
+Distilled Micro-Student (Sub-1k Pareto),2911,11.37 KB,0.3554,0.186,0.4483,0.3059

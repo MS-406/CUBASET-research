@@ -1,0 +1,13 @@
+Method,k_shot,Model_Size_KB,Raw_F1,Affiliation_F1,Point_Adjusted_F1
+ELM (Extreme Learning Machine),3,12.4,0.1774,0.384,0.5064
+ELM (Extreme Learning Machine),5,12.4,0.1774,0.384,0.5064
+ELM (Extreme Learning Machine),10,12.4,0.1774,0.384,0.5064
+ELM (Extreme Learning Machine),20,12.4,0.1774,0.384,0.5064
+MAML (Meta-Learning Teacher),3,5.79,0.312,0.621,0.8629
+MAML (Meta-Learning Teacher),5,5.79,0.3085,0.6185,0.8574
+MAML (Meta-Learning Teacher),10,5.79,0.3102,0.6201,0.8526
+MAML (Meta-Learning Teacher),20,5.79,0.3145,0.624,0.8626
+Distilled Student (Our Micro-Model),3,1.64,0.3015,0.612,0.8461
+Distilled Student (Our Micro-Model),5,1.64,0.304,0.6145,0.842
+Distilled Student (Our Micro-Model),10,1.64,0.311,0.6215,0.8643
+Distilled Student (Our Micro-Model),20,1.64,0.3105,0.6208,0.8629

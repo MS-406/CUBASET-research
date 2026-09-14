@@ -1,0 +1,5 @@
+Thresholding_Strategy,Strict_Raw_F1,Affiliation_F1,Point_Adjusted_PA_F1,PR_AUC,Leakage_Free,Failure_Mechanism
+Heuristic 3-Sigma Gaussian (mu + 3*sigma),0.0537,0.124,0.3892,0.152,True,Catastrophic threshold elevation on heavy-tailed/bimodal space telemetry
+Static Test Percentile (Q_0.985 on Test Stream),0.284,0.482,0.742,0.421,False,Violates out-of-sample protocol by peeking at future test error distribution
+Validation Quantile Calibration (Tau* = Q_0.985 on Train-Val),0.3455,0.512,0.8643,0.485,True,Optimal trade-off: +543% gain over 3-sigma without test contamination
+POT / SPOT (Peak-Over-Threshold Extreme Value Theory),0.3468,0.518,0.8655,0.489,True,Marginal +0.37% gain over quantile calibration with higher MCU complexity

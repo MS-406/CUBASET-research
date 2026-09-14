@@ -1,0 +1,10 @@
+Channel,Total_Test_Windows,GT_Pos_Windows,GT_Events,Pred_Events,Strict_Raw_F1,Aff_F1,PA_F1,PR_AUC,Has_GT_Anomalies,Included_In_Active_Mean,Exclusion_Reason
+CADC0872,3927,1505,23,3,0.034,0.16,0.15,0.4189,True,True,None (Channel contains real ground truth anomalies)
+CADC0892,3226,331,6,2,0.0348,0.25,0.0348,0.096,True,True,None (Channel contains real ground truth anomalies)
+CADC0874,4477,3134,8,3,0.0076,0.5455,0.7137,0.6505,True,True,None (Channel contains real ground truth anomalies)
+CADC0884,665,0,0,0,0.0,1.0,0.0,0.0,False,False,Excluded from active anomaly mean (0 ground-truth anomalies in test set; F1 is mathematically undefined 0/0)
+CADC0873,4158,1551,22,2,0.0154,0.1667,0.3622,0.3452,True,True,None (Channel contains real ground truth anomalies)
+CADC0886,26,9,1,0,0.0,0.0,0.0,0.323,True,True,None (Channel contains real ground truth anomalies)
+CADC0888,705,101,9,1,0.0357,0.2,0.0357,0.355,True,True,None (Channel contains real ground truth anomalies)
+CADC0894,2315,540,2,0,0.0,0.0,0.0,0.2062,True,True,None (Channel contains real ground truth anomalies)
+CADC0890,14,14,1,0,0.0,0.0,0.0,0.0,True,True,None (Channel contains real ground truth anomalies)

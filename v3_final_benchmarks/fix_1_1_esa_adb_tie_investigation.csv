@@ -1,0 +1,2 @@
+Dataset_Slice,Total_Test_Windows,Total_GT_Positive_Windows,GT_Event_Segments_Count,Pred_Event_Segments_Count,Strict_Raw_F1,Point_Adjusted_PA_F1,Affiliation_F1,Raw_vs_PA_Identical,Low_Sample_Size_Caveat,Tie_Explanation,Paper_Reporting_Recommendation
+ESA-ADB Curated Mission Telemetry Sample,1993,75,1,2,0.8876,0.8876,0.6667,True,True,Identical predictions: Point adjustment had zero effect because all predictions matched ground truth segments exactly or had no unextended overlap.,Must be reported with Low_Sample_Size_Caveat=True due to having only 1 GT event(s).

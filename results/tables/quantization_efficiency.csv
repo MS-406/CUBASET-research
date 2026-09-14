@@ -1,0 +1,2 @@
+Model Variant,Parameters,FP32 File Size,INT8 File Size,Compression Ratio
+MultiScale-TelemetryAE,8461,38.27 KB,38.27 KB,1.00x

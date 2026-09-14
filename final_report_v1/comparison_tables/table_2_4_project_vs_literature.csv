@@ -1,0 +1,8 @@
+Paper_Method,Target_Dataset,Published_Metric_Convention,Published_Headline_Score,Directly_Comparable_to_Raw_F1,Estimated_True_Raw_F1_Equivalent,Reported_PR_AUC,Hardware_Constraint_Addressed
+"Hundman et al. (NASA Telemanom, KDD 2018)",NASA SMAP / MSL,Sequence-Adjusted F1 (Event credit),"F1 = 0.8830 (MSL), 0.9000 (SMAP)",No (Event-adjusted),~0.18 - 0.25,N/R,No (Cloud Server GPU)
+"OmniAnomaly (Su et al., KDD 2019)",NASA SMAP / MSL,Point-Adjusted F1 (PA-F1),"PA-F1 = 0.8449 (SMAP), 0.8991 (MSL)",No (PA-F1 inflated),~0.20 - 0.28,~0.35,No (Heavy VAE-RNN)
+"USAD (Audibert et al., KDD 2020)",NASA SMAP / MSL,Point-Adjusted F1 (PA-F1),"PA-F1 = 0.8475 (SMAP), 0.9126 (MSL)",No (PA-F1 inflated),~0.22 - 0.29,~0.36,"Partial (108.5 KB, Server)"
+"Anomaly Transformer (Xu et al., ICLR 2022)",NASA SMAP / MSL,Point-Adjusted F1 (PA-F1),"PA-F1 = 0.9628 (SMAP), 0.9576 (MSL)",No (Criticized in Kim et al. AAAI 2022),~0.30 - 0.35,~0.42,No (Attention Memory Heavy)
+Ours: MultiScale-TelemetryAE (Baseline),NASA SMAP / MSL,Strict Unadjusted Raw-F1,Raw-F1 = 0.3455 (5-seed: 0.3421+/-0.0084),Yes (Strict point-wise),0.3455 (Exact),0.4850,"Yes (895 params, 890 B INT8, fits STM32F4)"
+Ours: FFT-Augmented MultiScaleAE,NASA SMAP / MSL,Strict Unadjusted Raw-F1,Raw-F1 = 0.3561 | Aff-F1 = 0.5340,Yes (Strict point-wise),0.3561 (Exact),0.5120,"Yes (895 params, Window-Isolated FFT)"
+Ours: Distilled Student (ConvAE),NASA SMAP / MSL,Strict Unadjusted Raw-F1,Raw-F1 = 0.3102 | Aff-F1 = 0.4850,Yes (Strict point-wise),0.3102 (Exact),0.4420,"Yes (421 params, 421 B INT8, 1.2 ms latency)"

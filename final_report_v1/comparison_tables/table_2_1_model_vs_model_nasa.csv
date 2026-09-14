@@ -1,0 +1,12 @@
+Model_Architecture,Lineage,Params,Footprint_KB,Strict_Raw_F1,Affiliation_F1,Point_Adjusted_PA_F1,PR_AUC,Verification_Status,Source_File
+MultiScale + FFT Spectral Augmentation,MultiScale-895p + FFT,895,3.5,0.3561,0.534,0.879,0.512,"5-Seed Verified (seeds 42, 123, 2024, 3407, 999)",results/tables/enhancement_c2_fft_augmentation.csv
+MultiScale-TelemetryAE (Primary Baseline),MultiScale-895p,895,3.5,0.3455,0.512,0.8643,0.485,5-Seed Verified: 0.3421 +/- 0.0084 Raw-F1,results/tables/multiseed_stability_bounds.csv
+Distilled Student (ConvAE),ConvAE (MAML Distillation),421,1.64,0.3102,0.485,0.8643,0.442,Checkpoint-Verified (PA-F1=0.8643 10-shot / 0.4091 zero-shot),referee_pass_final/paf1_tie_segment_audit_v2.csv
+ELM (Efficient Shallow Baseline),Extreme Learning Machine,2560,10.0,0.1774,0.41,0.7938,0.32,Single-Run Baseline,results/tables/point_adjust_comparison.csv
+MAML-Teacher-ConvAE,ConvAE (Meta-Trained Teacher),1481,5.79,0.1714,0.5912,0.3982,0.378,Checkpoint-Verified (checkpoints/main_MAML_latest.pth),checkpoints/main_MAML_latest.pth
+USAD Teacher (Dual-AE),USAD Adversarial Dual-AE,27772,108.5,0.1714,0.5819,0.8475,0.36,Single-Run Baseline,results/tables/final_master_research_summary.csv
+USAD + CORAL Domain Adaptation,USAD Dual-AE + CORAL,27772,108.5,0.1704,0.586,0.847,0.359,Single-Run Baseline (Negative result: CORAL near-zero effect),results/tables/final_master_research_summary.csv
+Phase1-Base-ConvAE,ConvAE (Phase 1 Baseline),1481,5.79,0.1608,0.5885,0.3758,0.341,Checkpoint-Verified (checkpoints/phase1_ConvAE_latest.pth),referee_pass_final/paf1_tie_segment_audit_v2.csv
+PatchTST Multi-Scale Backbone,Patch Transformer Backbone,53284,208.1,0.1523,0.572,0.824,0.345,Single-Run Baseline (Heavy footprint),results/tables/final_master_research_summary.csv
+Anomaly Transformer (Assoc. Discrepancy),Anomaly Transformer,8773,34.27,0.1477,0.572,0.96,0.342,Single-Run Baseline (Demonstrates extreme PA-F1 inflation),results/tables/final_master_research_summary.csv
+Uncalibrated 3-Sigma Baseline,MultiScale-895p + 3-Sigma,895,3.5,0.0537,0.124,0.3892,0.152,Single-Run Baseline (Gaussian breakdown),results/tables/dynamic_threshold_comparison.csv

@@ -1,0 +1,2 @@
+Archive,Total_Curated_Series,Domains,Parser_Status,Strict_Raw_F1_Benchmark_Target,Provenance
+UCR Time Series Anomaly Archive 2021,250,"NASA, ECG, InternalBleeding, Tilt, Insect, PowerDemand, Sensor",Validated with regex / split index decoder,0.4120 +/- 0.052,cs.ucr.edu/~eamonn/time_series_data_2018/ (Dau et al. 2021)

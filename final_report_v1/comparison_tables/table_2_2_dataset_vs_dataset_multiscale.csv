@@ -1,0 +1,8 @@
+Dataset,Domain,Model_Variant,Strict_Raw_F1,Raw_F1_Multiseed_Bound,Affiliation_F1,N_Ground_Truth_Events,Low_Sample_Size_Flag,Source_File
+NASA SMAP / MSL Telemetry (81 Channels),Aerospace Deep Space / Mars Rover,MultiScale-895p (Univariate),0.3455,0.3421 +/- 0.0084,0.512,104,False,results/tables/final_master_research_summary.csv
+SKAB Full Multi-Sensor Benchmark (32 Series),Industrial Water Circulation System,MultiScale-2911p (Multivariate 8-Sensors),0.8141,0.8141 +/- 0.0034,0.9258,32,False,referee_pass_final/skab_multivariate_vs_univariate_5seed_verified_v2.csv
+SKAB Primary Sensor Parity Benchmark (32 Series),Industrial Water Circulation System,MultiScale-895p (Univariate Parity),0.6869,0.6869 +/- 0.0089,0.7799,32,False,referee_pass_final/skab_univariate_multiseed_stress_test_v2.csv
+"Server Machine Dataset SMD (28 Machines / 1,064 Chans)",Enterprise Internet Server Clusters,MultiScale-895p (Univariate),0.2714,Single-Run (28 machine traces),0.5842,28,False,v3_final_benchmarks/gap3_smd_provenance_confirmation.md
+ESA OPS-SAT-AD In-Orbit Telemetry (8 Active Chans),Operational Low-Earth Orbit CubeSat,MultiScale-895p (Zero-Shot Active),0.016,Single-Run Active Stream,0.1653,71,False,v3_final_benchmarks/fix_1_2_opssat_averaging_correction.csv
+Numenta Anomaly Benchmark NAB (58 Data Streams),Mixed Real-Time Cloud / Traffic / System,MultiScale-895p (Univariate),0.0858,Single-Run (58 streams),0.4397,58,False,results/tables/final_master_research_summary.csv
+ESA-ADB Real Mission Telemetry Slice (20k Slice),Satellite Subsystem Bivariate Telemetry,MultiScale-2911p (Bivariate Power+Thermal),0.8876,Single-Run Pilot Slice,0.6667,1,True,v3_final_benchmarks/fix_1_1_esa_adb_tie_investigation.csv

@@ -1,0 +1,5 @@
+Subsystem,Channels,GT_Events,Pred_Events,Univariate_Raw_F1,Multivariate_Raw_F1,Univariate_Aff_F1,Multivariate_Aff_F1,Univariate_PR_AUC,Multivariate_PR_AUC,Statistical_Caveat
+POWER,9,5,1,0.3654,0.3365,0.6603,1.0,0.5455,0.6082,Small event sample size (<10 events)
+ATTITUDE,11,1,1,0.2974,0.0133,0.6529,1.0,0.4522,0.4069,Small event sample size (<10 events)
+THERMAL,22,2,7,0.098,0.4885,0.3652,0.4444,0.3557,0.5859,Small event sample size (<10 events)
+OTHER,39,2,1,0.3121,0.8782,0.7324,1.0,0.63,0.9733,Small event sample size (<10 events)

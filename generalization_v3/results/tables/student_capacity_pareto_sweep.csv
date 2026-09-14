@@ -1,7 +1,0 @@
-Model Variant,Parameters,Footprint,Calibrated Raw-F1 (NASA),Affiliation-F1 (NASA),Point-Adjusted F1 (NASA)
-MultiScaleStudent-276p,276,1.08 KB,0.0891,0.2476,0.1768
-MultiScaleStudent-594p,594,2.32 KB,0.0952,0.235,0.1636
-MultiScaleStudent-911p,911,3.56 KB,0.1203,0.2942,0.189
-MultiScaleStudent-2087p,2087,8.15 KB,0.1131,0.2402,0.1525
-MultiScaleStudent-4933p,4933,19.27 KB,0.1071,0.2819,0.1944
-MultiScaleStudent-10749p,10749,41.99 KB,0.1005,0.2325,0.1494

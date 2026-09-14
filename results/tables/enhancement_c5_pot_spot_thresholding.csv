@@ -1,0 +1,3 @@
+Threshold Method,Strict Raw-F1,Affiliation-F1,PR-AUC
+Static Percentile (98.5th Percentile Heuristic),0.2736,0.3929,0.5429
+POT/SPOT (Generalized Pareto Distribution Fit),0.2725,0.3773,0.5429

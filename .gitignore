@@ -1,4 +1,10 @@
 desktop.ini
 __pycache__/
 *.pyc
-external_benchmark/data_external/
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+.DS_Store
+*.zip
+*.tar.gz
+.qodo/

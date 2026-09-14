@@ -1,8 +1,0 @@
-Ablation Step / Configuration,Params,Model Footprint,Precision,Recall,Raw-F1,Affiliation-F1,Point-Adjusted F1
-1. Existing Baseline (TinyConvAE + mu+3sigma Heuristic),421,1.64 KB,0.361,0.4711,0.3185,0.5852,0.4067
-"2. + Window & Granularity Fix (W=64, Stride=5)",421,1.64 KB,0.4044,0.4858,0.3268,0.6137,0.44
-3. + Frozen Validation Threshold Calibration (tau*),421,1.64 KB,0.4037,0.5003,0.3353,0.634,0.456
-4. + Composite Temporal Scoring (Recon + First-Diff),421,1.64 KB,0.1846,0.124,0.0967,0.2444,0.2259
-5. + Anomaly-Aware Ranking Objective,421,1.64 KB,0.1635,0.1191,0.0959,0.2046,0.2014
-6. + Multi-Level Teacher Distillation,421,1.64 KB,0.1504,0.1264,0.0931,0.2263,0.1796
-"7. Final SOTA MultiScaleStudent-911p (Parallel k=3,7,15)",911,3.56 KB,0.1391,0.1108,0.0816,0.1987,0.1542

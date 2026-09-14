@@ -1,0 +1,2 @@
+File,Rows,Channels,Test_Windows,GT_Events,Pred_Events,Strict_Raw_F1,Affiliation_F1,PA_F1,PR_AUC,Low_Sample_Size_Caveat,Provenance
+esa_adb_mission_telemetry.csv,20000,2,1993,1,4,0.7426,0.4,0.7426,0.7567,True,ESA-ADB Mission Telemetry Slice (Zenodo DOI 10.5281/zenodo.12528696)
