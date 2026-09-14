@@ -27,7 +27,7 @@ Every architectural parameter, preprocessing choice, training hyperparameter, th
 |         │                  Optional: Window-Isolated Spectral FFT Augmentation                     |
 |         ▼                                                                                          |
 |  [3. Model Architecture]   MultiScale-TelemetryAE (895p) / Distilled Student ConvAE (421p)         |
-|         │                  Multi-Kernel Conv1D (k=3,5,7) Bottleneck Reconstruction                 |
+|         │                  Multi-Kernel Conv1D (k=3,7,11) Bottleneck Reconstruction                |
 |         ▼                                                                                          |
 |  [4. Training Protocol]    MSE Loss + Meta-Learning (MAML) / Dark Knowledge Distillation (KL Div)  |
 |         │                  Domain Invariance Checked (CORAL verified near-zero effect documented)  |
@@ -77,25 +77,22 @@ All models were developed under the strict hardware constraints of CubeSat On-Bo
 MultiScale-TelemetryAE (895 Parameters) Architecture Diagram:
 Input: (Batch, 1, 100)
   │
-  ├─► Conv1D(k=3, ch=1->8, pad=1) ──┐
-  ├─► Conv1D(k=5, ch=1->8, pad=2) ──┼─► Concat (ch=24) ──► MaxPool1D(2) ──► (Batch, 24, 50)
-  ├─► Conv1D(k=7, ch=1->8, pad=3) ──┘                           │
-  │                                                              ▼
-  │                                                   Bottleneck Conv1D(24->4, k=3)
-  │                                                              │
-  │                                                              ▼ (Batch, 4, 50)
-  │                                                   Expand Conv1D(4->24, k=3)
-  │                                                              │
-  │                                                              ▼
-  │                                                   Upsample1D(scale=2) -> (Batch, 24, 100)
-  │                                                              │
-  └──────────────────────────────────────────────────────────────▼
-                                                      Output Conv1D(24->1, k=3) ──► Reconstruction (Batch, 1, 100)
+  ├─► Conv1D(k=3,  ch=1->4, pad=1) ──┐
+  ├─► Conv1D(k=7,  ch=1->4, pad=3) ──┼─► Concat (ch=12) ──► ReLU
+  ├─► Conv1D(k=11, ch=1->4, pad=5) ──┘                       │
+  │                                                          ▼
+  │                                               Enc2 Conv1D(12->6, k=5, pad=2) ──► ReLU
+  │                                                          │
+  │                                                          ▼ Latent Bottleneck z: (Batch, 6, 100)
+  │                                               Dec1 Conv1D(6->12, k=5, pad=2) ──► ReLU
+  │                                                          │
+  └──────────────────────────────────────────────────────────▼
+                                                  Dec2 Conv1D(12->1, k=5, pad=2) ──► Reconstruction (Batch, 1, 100)
 ```
 
 | Model Architecture | Implementation Location | Parameter Count | FP32 Storage | INT8 Quantized SRAM | Design Rationale & Hardware Fit |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **MultiScale-TelemetryAE (Univariate)** | `src/models/multiscale_ae.py:MultiScaleTelemetryAE` | **895** | 3.50 KB | **890 Bytes** | Parallel multi-kernel convolutions ($k=3, 5, 7$) extract high-frequency spikes and low-frequency thermal drifts simultaneously without heavy multi-head attention. Fits in $<0.5\%$ of STM32F4 SRAM. |
+| **MultiScale-TelemetryAE (Univariate)** | `src/models/multiscale_ae.py:MultiScaleTelemetryAE` | **895** | 3.50 KB | **890 Bytes** | Parallel multi-kernel convolutions ($k=3, 7, 11$) with `hidden_dim=12, latent_dim=6` extract high-frequency spikes and low-frequency thermal drifts simultaneously without heavy multi-head attention. Fits in $<0.5\%$ of STM32F4 SRAM. |
 | **Distilled Student (ConvAE)** | `src/models/student_ae.py:DistilledStudentAE` | **421** | 1.64 KB | **421 Bytes** | Single-path lightweight encoder-decoder compressed via dark knowledge distillation from MAML teacher. Achieves $1.2\text{ ms}$ inference latency on Cortex-M4 @ 168 MHz. |
 | **MultiScale-TelemetryAE (Multivariate 8-ch)** | `src/models/multiscale_ae.py:MultiScaleTelemetryAE_MV` | **2,911** | 11.37 KB | **2.91 KB** | Multi-channel cross-sensor bottleneck for tightly coupled subsystem dynamics (e.g. SKAB water circulation loop, satellite power-thermal subsystems). |
 | **MAML-Teacher-ConvAE** | `src/models/maml_teacher.py:MAMLTeacherConvAE` | **1,481** | 5.79 KB | **1.48 KB** | Meta-trained over synthetic space telemetry tasks to serve as high-capacity initialization teacher for few-shot adaptation and student distillation. |
@@ -190,14 +187,15 @@ All tables below are generated directly from verified CSV records in `final_repo
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | **MultiScale + FFT Spectral** | MultiScale-895p + FFT | 895 | 3.50 KB | **0.3561** | 0.5340 | 0.8790 | 0.5120 | 5-Seed Verified (seeds 42, 123, 2024, 3407, 999) |
 | **MultiScale-TelemetryAE** | MultiScale-895p Baseline | 895 | 3.50 KB | **0.3455** | 0.5120 | 0.8643 | 0.4850 | 5-Seed Verified ($0.3421 \pm 0.0084$) |
-| **Distilled Student ConvAE** | ConvAE (MAML Distilled) | 421 | 1.64 KB | **0.3102** | 0.4850 | 0.8643 / 0.4091 | 0.4420 | Checkpoint-Verified (10-shot / 0-shot audit) |
+| **MAML-Teacher-ConvAE (Unadapted)** | ConvAE (Meta-Trained) | 1,481 | 5.79 KB | **0.3409** | 0.5912 | 0.4424 (0.4955 pooled) | 0.5644 | Checkpoint-Verified (`main_MAML_latest.pth`; 78/104 hits) |
+| **Distilled Student (10-Shot Adapted)**| ConvAE (MAML Distilled) | 421 | 1.64 KB | **0.3102** | 0.4850 | 0.8643 | 0.4420 | Checkpoint-Verified (10-shot meta-test transfer) |
+| **Distilled Student (Unadapted Zero-Shot)**| ConvAE (Zero-Shot Baseline)| 421 | 1.64 KB | **0.2860** | 0.4850 | 0.4003 (0.4091 pooled) | 0.5581 | Checkpoint-Verified (`main_student_latest.pth`; 80/104 hits) |
+| **Phase1-Base-ConvAE** | ConvAE (Phase 1 Baseline) | 1,481 | 5.79 KB | **0.2408** | 0.5885 | 0.2931 (0.3758 pooled) | 0.5108 | Checkpoint-Verified (`phase1_ConvAE_latest.pth`; 56/104 hits) |
 | **ELM Baseline** | Extreme Learning Machine | 2,560 | 10.00 KB | **0.1774** | 0.4100 | 0.7938 | 0.3200 | Single-Run Baseline |
-| **MAML-Teacher-ConvAE** | ConvAE (Meta-Trained) | 1,481 | 5.79 KB | **0.1714** | 0.5912 | 0.3982 | 0.3780 | Checkpoint-Verified (`main_MAML_latest.pth`) |
 | **USAD Dual-AE** | Adversarial Dual-AE | 27,772 | 108.50 KB | **0.1714** | 0.5819 | 0.8475 | 0.3600 | Single-Run Baseline |
 | **USAD + CORAL** | USAD + Domain Adaptation | 27,772 | 108.50 KB | **0.1704** | 0.5860 | 0.8470 | 0.3590 | Negative Result: CORAL near-zero effect |
-| **Phase1-Base-ConvAE** | ConvAE (Phase 1 Baseline) | 1,481 | 5.79 KB | **0.1608** | 0.5885 | 0.3758 | 0.3410 | Checkpoint-Verified (`phase1_ConvAE_latest.pth`) |
 | **PatchTST Backbone** | Patch Transformer | 53,284 | 208.10 KB | **0.1523** | 0.5720 | 0.8240 | 0.3450 | Heavy Model Baseline |
-| **Anomaly Transformer** | Assoc. Discrepancy Attention | 8,773 | 34.27 KB | **0.1477** | 0.5720 | 0.9600 | 0.3420 | Exhibits extreme PA-F1 inflation ($0.1477 \rightarrow 0.9600$) |
+| **Anomaly Transformer** | Assoc. Discrepancy Attention | 8,773 | 34.27 KB | **0.1477** | 0.5720 | 0.6954 | 0.3420 | Single-Run Baseline (Local run PA-F1=0.6954; published headline=0.9628) |
 | **3-Sigma Heuristic Baseline**| MultiScale + 3-Sigma | 895 | 3.50 KB | **0.0537** | 0.1240 | 0.3892 | 0.1520 | Gaussian Calibration Breakdown |
 
 ---
@@ -290,8 +288,9 @@ SKAB 5-Seed Paired Execution Trajectory:
 | **FP32 Weight Footprint** | 5.79 KB | **1.64 KB** | **71.67% storage reduction** |
 | **INT8 Quantized Footprint** | 1.48 KB | **421 Bytes** | Fits inside **0.22%** of 192 KB STM32F4 SRAM |
 | **Inference Latency (Cortex-M4 @ 168 MHz)** | 4.8 ms / window | **1.2 ms / window** | **4.0x inference speedup** |
-| **NASA SMAP/MSL Strict Raw-F1** | 0.1714 (Zero-Shot) | **0.3102 (10-Shot Adapted)** | $96.6\%$ unadapted retention; strong few-shot transfer |
-| **NASA Segment Hit Rate (81 Channels)** | 78 / 104 ($75.00\%$) | **80 / 104 ($76.92\%$)** | Tight distillation fidelity ($+1.92\%$ hit rate, $+19.5\%$ FP noise) |
+| **NASA SMAP/MSL Unadapted Zero-Shot Raw-F1** | Macro Raw-F1 = **0.3409** (Pooled = **0.3895**) | Macro Raw-F1 = **0.2860** (Pooled = **0.3074**) | Student retains **83.89% macro Raw-F1** (78.92% pooled) at 28.4% parameter footprint |
+| **NASA SMAP/MSL 10-Shot Adapted Regime** | Raw-F1 = **0.3150** \| PA-F1 = **0.8670** | Raw-F1 = **0.3102** \| PA-F1 = **0.8643** | **98.48% recovery** of teacher adapted performance on meta-test channels |
+| **NASA Segment Hit Rate (81 Channels)** | 78 / 104 ($75.00\%$) | **80 / 104 ($76.92\%$)** | Tight distillation fidelity ($+1.92\%$ hit rate / 102.56% detection recovery) |
 | **OPS-SAT Few-Shot Transfer (3-Shot)** | PA-F1 = 0.1732 | **PA-F1 = 0.1719** | **99.25% recovery** of teacher transfer performance |
 
 ---

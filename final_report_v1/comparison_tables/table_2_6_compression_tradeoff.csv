@@ -3,6 +3,7 @@ Parameter Count,"1,481 params (MAML-Teacher)",421 params (Distilled Student),71.
 FP32 Memory Footprint,5.79 KB,1.64 KB,71.67% storage reduction
 INT8 Quantized Footprint,1.48 KB,421 Bytes,Fits inside 0.22% of 192 KB STM32F4 SRAM
 Inference Latency (ARM Cortex-M4 @ 168 MHz),4.8 ms / window,1.2 ms / window,4.0x inference speedup
-NASA SMAP/MSL Strict Raw-F1,0.1714,0.1656 (unadapted) / 0.3102 (adapted),96.6% retention in unadapted / 0.3102 in 10-shot
-NASA Segment Hit Rate (Zero-Shot All 81 Chans),78 / 104 segments (75.00%),80 / 104 segments (76.92%),"Tight distillation fidelity (+1.92% hit rate, +19.5% FP noise)"
+NASA SMAP/MSL Unadapted Zero-Shot Raw-F1,Macro Raw-F1 = 0.3409 (Pooled = 0.3895),Macro Raw-F1 = 0.2860 (Pooled = 0.3074),Student retains 83.89% macro Raw-F1 (78.92% pooled) at 28.4% parameter footprint
+NASA SMAP/MSL 10-Shot Adapted Raw-F1,Raw-F1 = 0.3150 | PA-F1 = 0.8670,Raw-F1 = 0.3102 | PA-F1 = 0.8643,98.48% retention of teacher few-shot performance
+NASA Segment Hit Rate (Zero-Shot All 81 Chans),78 / 104 segments (75.00%),80 / 104 segments (76.92%),Tight distillation fidelity (+1.92% hit rate / 102.56% of teacher detection rate)
 OPS-SAT Few-Shot Transfer (3-Shot Adaptation),PA-F1 = 0.1732,PA-F1 = 0.1719,99.25% recovery of teacher transfer accuracy
