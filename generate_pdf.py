@@ -165,11 +165,13 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         "In this paper, we present an ultra-lightweight, zero-leakage neural telemetry anomaly detection framework engineered specifically "
         "for micro-OBC deployment. We design <b>MultiScale-TelemetryAE</b>, an 895-parameter parallel multi-kernel 1D convolutional autoencoder "
         "(k=[3, 7, 11]), and compress it via dark knowledge distillation into a <b>421-parameter Micro-Student</b>. Quantized to INT8, "
-        "the student occupies only <b>421 Bytes of SRAM</b> and executes in <b>1.2 ms</b> per temporal window on an ARM Cortex-M4 @ 168 MHz.<br/><br/>"
+        "the 895-parameter primary model occupies <b>895 Bytes of SRAM</b> (0.45% of 192 KB SRAM), while the 421-parameter micro-student occupies "
+        "<b>421 Bytes of SRAM</b> (0.22% of 192 KB SRAM), with both executing in <b>1.2 ms</b> per temporal window on an ARM Cortex-M4 @ 168 MHz.<br/><br/>"
         "Evaluating across 81 NASA SMAP/MSL spacecraft channels, the SKAB multi-sensor benchmark, Server Machine Dataset (SMD), "
         "ESA OPS-SAT in-orbit telemetry, and real ESA-ADB satellite data under strict, unadjusted point-wise Raw-F1, we demonstrate: "
-        "(1) our 895-parameter model achieves <b>0.3455 Raw-F1</b> (0.3421 ± 0.0084 across 5 seeds), outperforming the 60× larger "
-        "PatchTST Transformer baseline (53,284 parameters, 0.1523 Raw-F1) and the 10× larger Anomaly Transformer (8,773 parameters, 0.1477 Raw-F1); "
+        "(1) our 895-parameter model achieves <b>0.3455 Raw-F1</b> on default single-run and <b>0.3421 ± 0.0084</b> across 5 seeds "
+        "(rising to <b>0.3561</b> with FFT spectral augmentation), outperforming the 60× larger PatchTST Transformer baseline "
+        "(53,284 trainable parameters, 0.1523 Raw-F1) and the 10× larger Anomaly Transformer (8,773 trainable parameters, 0.1477 Raw-F1); "
         "(2) validation-calibrated quantile thresholding yields a <b>+543.4% gain</b> over classical Gaussian 3σ heuristics; and "
         "(3) on physically coupled subsystems (SKAB), multivariate representations deliver a statistically verified <b>+18.54% ± 1.72% advantage</b> "
         "(p = 0.00001) over univariate baselines. We release verified, non-interpolated execution ledgers to establish an honest benchmark for onboard spacecraft intelligence."
@@ -199,7 +201,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         ],
         [
             Paragraph("<b>Claim 1</b><br/>Hardware", table_cell_style),
-            Paragraph("<b>Sub-KB Embedded Feasibility:</b> Autoencoders compress to &lt;1 KB INT8 (421–890 B) and run in 1.2 ms on ARM Cortex-M4 (&lt;0.22% SRAM).", table_cell_style),
+            Paragraph("<b>Sub-KB Embedded Feasibility:</b> Autoencoders compress to &lt;1 KB INT8 (895 B for 895p, 421 B for 421p) and run in 1.2 ms on ARM Cortex-M4 (0.22%–0.45% SRAM).", table_cell_style),
             Paragraph("Quantized PyTorch layer allocations & Cortex-M4 @ 168 MHz profiling.", table_cell_style),
             Paragraph("Space-grade radiation-hardened MCUs may require minor clock latency scaling.", table_cell_style)
         ],
@@ -211,7 +213,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         ],
         [
             Paragraph("<b>Claim 3</b><br/>Architecture", table_cell_style),
-            Paragraph("<b>Multi-Scale Temporal ConvAE:</b> Parallel Conv1D (k=[3,7,11], 895p) achieves 0.3455 Raw-F1, outperforming 60× larger PatchTST (0.1523).", table_cell_style),
+            Paragraph("<b>Multi-Scale Temporal ConvAE:</b> Parallel Conv1D (k=[3,7,11], 895p) achieves 0.3455 Raw-F1 (0.3421 ± 0.0084 5-seed), outperforming 60× larger PatchTST (0.1523).", table_cell_style),
             Paragraph("5-seed stability runs (0.3421 ± 0.0084 across 81 channels).", table_cell_style),
             Paragraph("Evaluated under sliding window W=100 and quantile calibration.", table_cell_style)
         ],
@@ -269,7 +271,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         "  • Dec1 Conv1D(6→12, k=5, pad=2):      (6 × 12 × 5) + 12 = 372 params\n"
         "  • Dec2 Conv1D(12→1, k=5, pad=2):      (12 × 1 × 5) + 1 =  61 params\n"
         "  ───────────────────────────────────────────────────────────────────\n"
-        "  TOTAL EXACT PARAMETER SUM: 16 + 32 + 48 + 366 + 372 + 61 = 895 params (890 Bytes INT8)"
+        "  TOTAL EXACT PARAMETER SUM: 16 + 32 + 48 + 366 + 372 + 61 = 895 params (895 Bytes INT8)"
     )
     
     arch_box = Table([[Preformatted(arch_math, code_style)]], colWidths=[504])
@@ -307,7 +309,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
             Paragraph("MultiScale + FFT Aug.", table_cell_style),
             Paragraph("NASA SMAP/MSL (81 ch)", table_cell_style),
             Paragraph("895", table_cell_style),
-            Paragraph("890 B", table_cell_style),
+            Paragraph("895 B", table_cell_style),
             Paragraph("<b>0.3561 ± 0.0076</b>", table_cell_style),
             Paragraph("0.5340", table_cell_style),
             Paragraph("0.8790", table_cell_style),
@@ -317,7 +319,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
             Paragraph("MultiScale-TelemetryAE", table_cell_style),
             Paragraph("NASA SMAP/MSL (81 ch)", table_cell_style),
             Paragraph("895", table_cell_style),
-            Paragraph("890 B", table_cell_style),
+            Paragraph("895 B", table_cell_style),
             Paragraph("<b>0.3455 (0.3421)</b>", table_cell_style),
             Paragraph("0.5120", table_cell_style),
             Paragraph("0.8643", table_cell_style),
@@ -381,7 +383,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
             Paragraph("0.1523", table_cell_style),
             Paragraph("0.5720", table_cell_style),
             Paragraph("0.8240", table_cell_style),
-            Paragraph("60× Parameter Baseline", table_cell_style)
+            Paragraph("60× Trainable Param Baseline", table_cell_style)
         ],
         [
             Paragraph("Anomaly Transformer", table_cell_style),
@@ -407,7 +409,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
             Paragraph("MultiScale-895p (Univariate)", table_cell_style),
             Paragraph("SKAB Benchmark (32 ser)", table_cell_style),
             Paragraph("895", table_cell_style),
-            Paragraph("890 B", table_cell_style),
+            Paragraph("895 B", table_cell_style),
             Paragraph("0.6869 ± 0.0089", table_cell_style),
             Paragraph("0.7799", table_cell_style),
             Paragraph("0.8312", table_cell_style),
@@ -417,7 +419,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
             Paragraph("MultiScale-895p (Univariate)", table_cell_style),
             Paragraph("SMD (28 entities)", table_cell_style),
             Paragraph("895", table_cell_style),
-            Paragraph("890 B", table_cell_style),
+            Paragraph("895 B", table_cell_style),
             Paragraph("0.2714", table_cell_style),
             Paragraph("0.5842", table_cell_style),
             Paragraph("0.8966", table_cell_style),
@@ -504,7 +506,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         [
             Paragraph("Narrow: k = [3, 5, 7]", table_cell_style),
             Paragraph("871p", table_cell_style),
-            Paragraph("866 Bytes", table_cell_style),
+            Paragraph("871 Bytes", table_cell_style),
             Paragraph("0.3422 ± 0.0081", table_cell_style),
             Paragraph("0.5080", table_cell_style),
             Paragraph("0.8590", table_cell_style),
@@ -514,7 +516,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         [
             Paragraph("<b>Primary: k = [3, 7, 11]</b>", table_cell_style),
             Paragraph("<b>895p</b>", table_cell_style),
-            Paragraph("<b>890 Bytes</b>", table_cell_style),
+            Paragraph("<b>895 Bytes</b>", table_cell_style),
             Paragraph("<b>0.3455 (0.3421 ± 0.0084)</b>", table_cell_style),
             Paragraph("<b>0.5120</b>", table_cell_style),
             Paragraph("<b>0.8643</b>", table_cell_style),
@@ -524,7 +526,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         [
             Paragraph("Wide: k = [3, 9, 15]", table_cell_style),
             Paragraph("919p", table_cell_style),
-            Paragraph("914 Bytes", table_cell_style),
+            Paragraph("919 Bytes", table_cell_style),
             Paragraph("0.3394 ± 0.0079", table_cell_style),
             Paragraph("0.4990", table_cell_style),
             Paragraph("0.8510", table_cell_style),
@@ -597,7 +599,7 @@ def build_pdf(filename="research_paper_draft_ready_final.pdf"):
         "  • MultiScale-TelemetryAE (895p): Parallel Conv1D k=[3,7,11], Enc2 12->6, Dec1 6->12, Dec2 12->1\n"
         "  • Distilled Micro-Student (421p): Single-branch Conv1D 1->8->4->8->1 (Dark Knowledge Distillation from MAML Teacher)\n"
         "  • Flash Storage: 3.50 KB FP32 (895p) / 1.64 KB FP32 (421p)\n"
-        "  • Quantized SRAM: 890 Bytes INT8 (895p) / 421 Bytes INT8 (421p) [Fits in 0.22% of 192 KB STM32F4 SRAM]\n"
+        "  • Quantized SRAM: 895 Bytes INT8 (895p) / 421 Bytes INT8 (421p) [Fits in 0.22%-0.45% of 192 KB STM32F4 SRAM]\n"
         "  • Inference Latency: 1.2 ms / window on ARM Cortex-M4 @ 168 MHz (<0.15% CPU load at 1 Hz downlink)\n\n"
         "DATA PIPELINE & ZERO-LEAKAGE CALIBRATION:\n"
         "  • Ingestion Datasets: NASA SMAP/MSL (81 ch), SKAB (32 series), SMD (28 traces), ESA OPS-SAT (8 ch), ESA-ADB (20k slice)\n"
