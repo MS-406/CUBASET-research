@@ -67,7 +67,7 @@ This paper introduces an ultra-lightweight, edge-deployable temporal convolution
 |---|---|---|---|
 | **Distillation Footprint & Recovery** | 421 params (1.64 KB FP32 / 421 B INT8), Student recovers 99.6% PA-F1 / 0.3102 Raw-F1 | **Accept as Stated** | Dual-report Raw-F1 ($0.3102$) alongside PA-F1 ($0.8643$). |
 | **Quantile Threshold vs 3-Sigma** | Raw-F1 improves from 0.0537 to 0.3455 (+543% gain) across 81 NASA channels | **Accept as Stated** | Emphasize non-Gaussian telemetry failure mode. |
-| **Edge Hardware Compatibility** | 890 Bytes INT8 fits in STM32F4 192 KB SRAM ($< 0.5\%$ budget, 1.2 ms latency) | **Accept as Stated** | Emphasize suitability for rad-hard Cortex-M4/M7. |
+| **Edge Hardware Compatibility** | 895 Bytes INT8 (895p) / 421 Bytes INT8 (421p) fits in STM32F4 192 KB SRAM (0.22%–0.45% budget, 1.2 ms latency) | **Accept as Stated** | Emphasize suitability for rad-hard Cortex-M4/M7. |
 | **SKAB Generalization (5-Seed Both Sides)** | Univariate: $0.6869 \pm 0.0089$ \| Multivariate: $0.8141 \pm 0.0034$ (Paired Gain: $+18.54\% \pm 1.72\%$, $p=0.00001$) | **Accept as Stated** | Report 5-seed bounds on both univariate baseline and multivariate model from `_v2` files. |
 | **Subsystem Detection Performance** | Affiliation-F1 = 1.0000 on Power, Attitude, Other subsystems | **Accept with Required Caveat** | **Reject 'perfect detection' claim**. State small event sample size ($N \le 5$). |
 | **OPS-SAT On-Orbit Telemetry** | MultiScale Zero-Shot = 0.0160; ConvAE 3-Shot Recovery = 99.2% (Lineage Disclosed) | **Accept with Required Caveat** | Disclose ConvAE vs MultiScale model lineage explicitly. |

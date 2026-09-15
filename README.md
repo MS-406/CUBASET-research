@@ -62,8 +62,8 @@ To run the complete verified benchmark suite in the cloud with GPU acceleration:
 
 | Architecture | Model Parameters | Memory (FP32) | Quantized (INT8) | Cortex-M4 L1 SRAM Compatibility |
 |---|---|---|---|---|
-| **MultiScale-TelemetryAE (Univariate)** | 895 params | $3.50\text{ KB}$ | **$890\text{ Bytes}$** | ✅ Fits in $192\text{ KB}$ SRAM ($<0.5\%$ budget) |
-| **MultiScale-TelemetryAE (Multivariate)** | 2,911 params | $11.37\text{ KB}$ | **$2.84\text{ KB}$** | ✅ Fits in $192\text{ KB}$ SRAM ($<1.5\%$ budget) |
+| **MultiScale-TelemetryAE (Univariate)** | 895 params | $3.50\text{ KB}$ | **$895\text{ Bytes}$** | ✅ Fits in $192\text{ KB}$ SRAM ($<0.5\%$ budget) |
+| **MultiScale-TelemetryAE (Multivariate)** | 2,911 params | $11.37\text{ KB}$ | **$2.91\text{ KB}$** | ✅ Fits in $192\text{ KB}$ SRAM ($<1.5\%$ budget) |
 | **Distilled Student (ConvAE)** | 421 params | $1.64\text{ KB}$ | **$421\text{ Bytes}$** | ✅ Fits in $192\text{ KB}$ SRAM ($<0.25\%$ budget) |
 
 ---

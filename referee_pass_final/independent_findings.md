@@ -42,7 +42,7 @@
 ## 4. Smallest Verified Deployable Edge Model Size
 - **MultiScale-TelemetryAE (Univariate Sensor Model)**:
   - **Parameter Count**: **895 parameters** (3,580 Bytes FP32).
-  - **Quantized INT8 Footprint**: **890 Bytes** (0.87 KB).
+  - **Quantized INT8 Footprint**: **895 Bytes** (0.87 KB).
   - **Target Hardware**: Microchip SAMV71Q21 / STMicroelectronics STM32F4 (ARM Cortex-M4 / Cortex-M7).
   - **SRAM Utilization**: Requires $< 0.5\%$ of the available $192	ext{ KB}$ on-chip L1 SRAM, executing complete sliding window inferences in $< 1.2	ext{ ms}$.
 - **Distilled Student Model (Phase 2 ConvAE)**:

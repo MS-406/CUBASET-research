@@ -92,7 +92,7 @@ Input: (Batch, 1, 100)
 
 | Model Architecture | Implementation Location | Parameter Count | FP32 Storage | INT8 Quantized SRAM | Design Rationale & Hardware Fit |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **MultiScale-TelemetryAE (Univariate)** | `src/models/multiscale_ae.py:MultiScaleTelemetryAE` | **895** | 3.50 KB | **890 Bytes** | Parallel multi-kernel convolutions ($k=3, 7, 11$) with `hidden_dim=12, latent_dim=6` extract high-frequency spikes and low-frequency thermal drifts simultaneously without heavy multi-head attention. Fits in $<0.5\%$ of STM32F4 SRAM. |
+| **MultiScale-TelemetryAE (Univariate)** | `src/models/multiscale_ae.py:MultiScaleTelemetryAE` | **895** | 3.50 KB | **895 Bytes** | Parallel multi-kernel convolutions ($k=3, 7, 11$) with `hidden_dim=12, latent_dim=6` extract high-frequency spikes and low-frequency thermal drifts simultaneously without heavy multi-head attention. Fits in $<0.5\%$ of STM32F4 SRAM. |
 | **Distilled Student (ConvAE)** | `src/models/student_ae.py:DistilledStudentAE` | **421** | 1.64 KB | **421 Bytes** | Single-path lightweight encoder-decoder compressed via dark knowledge distillation from MAML teacher. Achieves $1.2\text{ ms}$ inference latency on Cortex-M4 @ 168 MHz. |
 | **MultiScale-TelemetryAE (Multivariate 8-ch)** | `src/models/multiscale_ae.py:MultiScaleTelemetryAE_MV` | **2,911** | 11.37 KB | **2.91 KB** | Multi-channel cross-sensor bottleneck for tightly coupled subsystem dynamics (e.g. SKAB water circulation loop, satellite power-thermal subsystems). |
 | **MAML-Teacher-ConvAE** | `src/models/maml_teacher.py:MAMLTeacherConvAE` | **1,481** | 5.79 KB | **1.48 KB** | Meta-trained over synthetic space telemetry tasks to serve as high-capacity initialization teacher for few-shot adaptation and student distillation. |
@@ -257,7 +257,7 @@ SKAB 5-Seed Paired Execution Trajectory:
 | **OmniAnomaly (Su et al., KDD 2019)** | NASA SMAP / MSL | Point-Adjusted F1 (PA-F1) | PA-F1 = 0.8449 (SMAP), 0.8991 (MSL) | **No** (PA-F1 inflated) | $\sim 0.20 - 0.28$ | No (Heavy VAE-RNN) |
 | **USAD (Audibert et al., KDD 2020)** | NASA SMAP / MSL | Point-Adjusted F1 (PA-F1) | PA-F1 = 0.8475 (SMAP), 0.9126 (MSL) | **No** (PA-F1 inflated) | $\sim 0.22 - 0.29$ | Partial (108.5 KB, Server) |
 | **Anomaly Transformer (Xu et al., ICLR 2022)**| NASA SMAP / MSL | Point-Adjusted F1 (PA-F1) | PA-F1 = 0.9628 (SMAP), 0.9576 (MSL) | **No** (Severe PA inflation) | $\sim 0.30 - 0.35$ | No (Attention Memory Heavy) |
-| **Ours: MultiScale-TelemetryAE** | NASA SMAP / MSL | **Strict Unadjusted Raw-F1** | **Raw-F1 = 0.3455 ($0.3421 \pm 0.0084$)** | **Yes** (Strict point-wise) | **0.3455 (Exact)** | **Yes (895 params, 890 B INT8, STM32F4)** |
+| **Ours: MultiScale-TelemetryAE** | NASA SMAP / MSL | **Strict Unadjusted Raw-F1** | **Raw-F1 = 0.3455 ($0.3421 \pm 0.0084$)** | **Yes** (Strict point-wise) | **0.3455 (Exact)** | **Yes (895 params, 895 B INT8, STM32F4)** |
 | **Ours: FFT-Augmented MultiScale** | NASA SMAP / MSL | **Strict Unadjusted Raw-F1** | **Raw-F1 = 0.3561, Aff-F1 = 0.5340** | **Yes** (Strict point-wise) | **0.3561 (Exact)** | **Yes (895 params, Window-Isolated FFT)** |
 | **Ours: Distilled Student (ConvAE)** | NASA SMAP / MSL | **Strict Unadjusted Raw-F1** | **Raw-F1 = 0.3102, Aff-F1 = 0.4850** | **Yes** (Strict point-wise) | **0.3102 (Exact)** | **Yes (421 params, 421 B INT8, 1.2 ms)** |
 
@@ -303,16 +303,16 @@ Below is the single definitive empirical table anchoring all results in the rese
 
 | Model Architecture | Evaluated Dataset | Params | Memory Footprint | Raw-F1 | Raw-F1 Uncertainty Bounds | Aff-F1 | PA-F1 | Ground-Truth Events ($N$) | Low-Sample Flag | Verification Status | Exact Source File Reference |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **MultiScale + FFT Spectral** | NASA SMAP/MSL (81 ch) | 895 | 3.50 KB FP32 / 890 B INT8 | **0.3561** | $0.0076$ (5-seed std) | 0.5340 | 0.8790 | 104 | False | 5-Seed Verified | `results/tables/enhancement_c2_fft_augmentation.csv` |
-| **MultiScale-TelemetryAE** | NASA SMAP/MSL (81 ch) | 895 | 3.50 KB FP32 / 890 B INT8 | **0.3455** | $0.3421 \pm 0.0084$ (5-seed) | 0.5120 | 0.8643 | 104 | False | 5-Seed Verified | `results/tables/multiseed_stability_bounds.csv` |
+| **MultiScale + FFT Spectral** | NASA SMAP/MSL (81 ch) | 895 | 3.50 KB FP32 / 895 B INT8 | **0.3561** | $0.0076$ (5-seed std) | 0.5340 | 0.8790 | 104 | False | 5-Seed Verified | `results/tables/enhancement_c2_fft_augmentation.csv` |
+| **MultiScale-TelemetryAE** | NASA SMAP/MSL (81 ch) | 895 | 3.50 KB FP32 / 895 B INT8 | **0.3455** | $0.3421 \pm 0.0084$ (5-seed) | 0.5120 | 0.8643 | 104 | False | 5-Seed Verified | `results/tables/multiseed_stability_bounds.csv` |
 | **Distilled Student (10-Shot)** | NASA SMAP/MSL (81 ch) | 421 | 1.64 KB FP32 / 421 B INT8 | **0.3102** | Single-Run (10-shot test) | 0.4850 | 0.8643 | 104 | False | Checkpoint-Verified | `referee_pass_final/paf1_tie_segment_audit_v2.csv` |
 | **MultiScale-2911p (Multivar)** | SKAB Benchmark (32 series) | 2,911 | 11.37 KB FP32 / 2.91 KB INT8 | **0.8141** | **$0.8141 \pm 0.0034$** (5-seed) | 0.9258 | 0.8486 | 32 | False | 5-Seed Verified | `referee_pass_final/skab_multivariate_vs_univariate_5seed_verified_v2.csv` |
-| **MultiScale-895p (Univar)** | SKAB Benchmark (32 series) | 895 | 3.50 KB FP32 / 890 B INT8 | **0.6869** | **$0.6869 \pm 0.0089$** (5-seed) | 0.7799 | 0.8312 | 32 | False | 5-Seed Verified | `referee_pass_final/skab_univariate_multiseed_stress_test_v2.csv` |
-| **MultiScale-895p (Univar)** | Server Machine Dataset (28 ent)| 895 | 3.50 KB FP32 / 890 B INT8 | **0.2714** | Single-Run (28 machines) | 0.5842 | 0.8966 | 28 | False | Single-Run Benchmark | `v3_final_benchmarks/gap3_smd_provenance_confirmation.md` |
-| **MultiScale-895p (Zero-Shot)** | ESA OPS-SAT-AD (8 active ch) | 895 | 3.50 KB FP32 / 890 B INT8 | **0.0160** | Single-Run Active Stream | 0.1653 | 0.1621 | 71 | False | Single-Run Active | `v3_final_benchmarks/fix_1_2_opssat_averaging_correction.csv` |
+| **MultiScale-895p (Univar)** | SKAB Benchmark (32 series) | 895 | 3.50 KB FP32 / 895 B INT8 | **0.6869** | **$0.6869 \pm 0.0089$** (5-seed) | 0.7799 | 0.8312 | 32 | False | 5-Seed Verified | `referee_pass_final/skab_univariate_multiseed_stress_test_v2.csv` |
+| **MultiScale-895p (Univar)** | Server Machine Dataset (28 ent)| 895 | 3.50 KB FP32 / 895 B INT8 | **0.2714** | Single-Run (28 machines) | 0.5842 | 0.8966 | 28 | False | Single-Run Benchmark | `v3_final_benchmarks/gap3_smd_provenance_confirmation.md` |
+| **MultiScale-895p (Zero-Shot)** | ESA OPS-SAT-AD (8 active ch) | 895 | 3.50 KB FP32 / 895 B INT8 | **0.0160** | Single-Run Active Stream | 0.1653 | 0.1621 | 71 | False | Single-Run Active | `v3_final_benchmarks/fix_1_2_opssat_averaging_correction.csv` |
 | **Distilled Student (3-Shot)** | ESA OPS-SAT-AD (Few-Shot) | 421 | 1.64 KB FP32 / 421 B INT8 | **0.0976** | Single-Run (3-shot adapt) | 0.2850 | 0.1719 | 71 | False | Few-Shot Transfer | `results/tables/opssat_fewshot_transfer.csv` |
 | **MultiScale-2911p (Bivar)** | ESA-ADB Real Slice (20k rows) | 2,911 | 11.37 KB FP32 / 2.91 KB INT8 | **0.8876** | Single-Run Pilot Slice | 0.6667 | 0.8876 | 1 | **True ($N=1$)**| Pilot Slice Verified | `v3_final_benchmarks/fix_1_1_esa_adb_tie_investigation.csv` |
-| **MultiScale-895p (Univar)** | Numenta NAB (58 streams) | 895 | 3.50 KB FP32 / 890 B INT8 | **0.0858** | Single-Run (58 streams) | 0.4397 | 0.4612 | 58 | False | Single-Run Baseline | `results/tables/final_master_research_summary.csv` |
+| **MultiScale-895p (Univar)** | Numenta NAB (58 streams) | 895 | 3.50 KB FP32 / 895 B INT8 | **0.0858** | Single-Run (58 streams) | 0.4397 | 0.4612 | 58 | False | Single-Run Baseline | `results/tables/final_master_research_summary.csv` |
 
 ---
 
